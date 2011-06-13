@@ -60,30 +60,16 @@ class SchoolExplorer
         }
 
         $query = <<<EOD
-CONSTRUCT {
-    ?city a geoDataGov:City .
-    ?city a skos:Concept .
-    ?city skos:prefLabel ?cityLabel .
-
-    ?province a geoDataGov:Province .
-    ?province a skos:Concept .
-    ?province skos:prefLabel ?provinceLabel .
-}
+SELECT ?cityLabel
 WHERE {
     ?city a geoDataGov:City .
     ?city a skos:Concept .
     ?city skos:prefLabel ?cityLabel .
-
-    ?province a geoDataGov:Province .
-    ?province a skos:Concept .
-    ?province skos:prefLabel ?provinceLabel .
 }
 EOD;
 
         $uri = $this->buildQueryURI($query);
 
-//        print_r($query);
-//exit;
         $response = $this->curlRequest($uri);
 
         return $response;
@@ -97,6 +83,7 @@ EOD;
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_USERAGENT, "https://github.com/mhausenblas/school-explorer");
         curl_setopt($ch, CURLOPT_HEADER, 1);
+//        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $output = curl_exec($ch);
