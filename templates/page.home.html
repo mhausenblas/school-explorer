@@ -1,0 +1,26 @@
+<?php require_once 'head.html'; ?>
+        <title>School Explorer</title>
+        <meta name="description" content="Information about schools to help parents to decide where to send their kids to."/>
+    </head>
+
+    <body id="home">
+        <div id="wrap">
+<?php require_once 'header.html'; ?>
+            <div id="core">
+                <div id="content">
+                    <h1>School Explorer</h1>
+
+                    <div id="content_inner">
+<?php
+    $SE->home();
+?>
+                    </div>
+                </div>
+            </div>
+<?php require_once 'footer.html'; ?>
+        </div>
+
+        <script type="text/javascript" src="/js/jquery.min.js"> </script>
+        <script type="text/javascript" src="/js/index.js"> </script>
+
+<?php require_once 'foot.html'; ?>

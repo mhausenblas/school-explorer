@@ -1,0 +1,12 @@
+Options -Indexes
+
+Header set Access-Control-Allow-Origin "*"
+
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule .* index.php [L,NC,QSA]
+
+# Hide private-ish stuff
+Redirect 404 /templates
