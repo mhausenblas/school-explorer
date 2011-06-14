@@ -60,7 +60,7 @@ class SchoolExplorer
         }
 
         $query = <<<EOD
-SELECT ?cityLabel
+SELECT ?city ?cityLabel
 WHERE {
     ?city a geoDataGov:City .
     ?city a skos:Concept .
@@ -72,9 +72,54 @@ EOD;
 
         $response = $this->curlRequest($uri);
 
+        $response = json_decode($response, true);
+
+        $response = $this->showList($response, 'Cities');
+
         return $response;
     }
 
+
+    function showList($data, $title=null, $id=null, $class=null)
+    {
+        if ($id != null) {
+            $id = ' id =".$id."';
+        }
+        if ($class != null) {
+            $class = " $class";
+        }
+
+        $vars = $data['head']['vars'];
+
+        $bindings = $data['results']['bindings'];
+
+        $s = <<<EOD
+        <dl$id class="aside$class">
+            <dt>$title</dt>
+            <dd>
+                <ul>
+EOD;
+        foreach($bindings as $key => $value) {
+            foreach($vars as $k => $var) {
+                if ($value[$var]['type'] == 'uri') {
+                    //TODO: @href would probably be mapped from something
+                    $href = $value[$var]['value'];
+                }
+                else {
+                    $textContent = $value[$var]['value'];
+                }
+            }
+
+            $s .= "\n".'<li><a href="'.$href.'">'.$textContent.'</a></li>';
+        }
+        $s .= <<<EOD
+
+                </ul>
+            </dd>
+        </dl>
+EOD;
+        return $s;
+    }
 
 
     function curlRequest($uri)
@@ -82,7 +127,7 @@ EOD;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_USERAGENT, "https://github.com/mhausenblas/school-explorer");
-        curl_setopt($ch, CURLOPT_HEADER, 1);
+//        curl_setopt($ch, CURLOPT_HEADER, 1);
 //        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
