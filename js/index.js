@@ -11,7 +11,7 @@
 var SE = { // School Explorer
     C: { // Config
         I: { // Init
-
+            storeUri : "http://govdata.ie/sparql"
         },
 
         S: { // Selector
