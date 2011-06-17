@@ -1,4 +1,4 @@
-/** theme:    base
+/** theme:   base
  *
  * @package   
  * @author    Sarven Capadisli <sarven.capadisli@deri.org>
@@ -10,11 +10,11 @@
 @media screen, projection, tv {
 * { margin:0; padding:0; }
 img { display:block; border:0; }
-a abbr { cursor: pointer; border-bottom:0; }
+a abbr { cursor:pointer; border-bottom:0; }
 table { border-collapse:collapse; }
 tr { vertical-align:top; }
 ol { list-style-position:inside; }
-/*html { font-size: 87.5%; }*/
+/*html { font-size:87.5%; }*/
 body {
 background-color:#FFFFFF;
 color:#000000;
@@ -46,12 +46,23 @@ padding:4px;
 font-family:sans-serif;
 font-size:1em;
 }
+input, textarea, select {
+border-radius:4px;
+-moz-border-radius:4px;
+-webkit-border-radius:4px;
+border-style:solid;
+border-width:2px;
+}
 input.submit {
 font-weight:bold;
 cursor:pointer;
+background-repeat:repeat-x;
 }
 textarea {
 overflow:auto;
+}
+select {
+padding:1px;
 }
 option {
 padding-bottom:0;
@@ -148,7 +159,7 @@ width:100%;
 position:relative;
 float:left;
 padding-top:18px;
-margin-bottom:29px;
+margin-bottom:11px;
 }
 
 #site_nav_global_primary {
@@ -219,6 +230,21 @@ float:left;
 #site_nav_global_secondary ul li {
 display:inline;
 margin-right:18px;
+}
+
+
+#form_search {
+clear:both;
+}
+
+#form_search legend {
+display:none;
+}
+
+#form_search .form_data li {
+float:left;
+margin-right:1em;
+margin-bottom:0;
 }
 
 
@@ -309,7 +335,7 @@ list-style-type:none;
 a:after { background-color:#FFFFFF; }
 a:not([href^="#"]):after { content:" <"attr(href)"> "; }
 img { border:none; }
-p { orphans: 2; widows: 1; }
+p { orphans:2; widows:1; }
 
 #site_nav_global_primary,
 #site_nav_local_sections,

@@ -75,6 +75,19 @@ text-shadow: rgba(194,194,194,0.5) 1px 1px 1px;
 }
 
 
+input, textarea, select {
+border-color: #AAAAAA;
+}
+
+input.submit {
+background-image: url(../../base/images/illustrations/illu_pattern-01.png);
+background-color:#AAAAAA;
+border-color: #CCCCCC #AAAAAA #AAAAAA #CCCCCC;
+color: #000000;
+text-shadow: 0 1px 0 #FFFFFF;
+box-shadow: 3px 3px 3px rgba(194, 194, 194, 0.3);
+}
+
 #aside_primary {
 background-color:#EEEEEE;
 }
