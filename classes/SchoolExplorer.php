@@ -298,6 +298,7 @@ EOD;
             //Get all items near a point
             //Input: near?center=lat,long
             //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
+            //e.g., http://school-explorer/info?location=53.2744122,-9.0490632
             case 'info':
                 if (count($values) == 2) {
                     //Basic clean up
