@@ -11,12 +11,10 @@ class SchoolExplorer
 
         $this->config = array();
         $this->setPrefixes();
+        $this->setAPIElements();
+        $this->getHTTPRequest();
 
-        $this->requestPath = explode('/', substr($_SERVER['REQUEST_URI'], 1));
-
-//        print_r($this->requestPath);
-
-        switch($this->requestPath[0]) {
+        switch($this->config['requestPath'][0]) {
             case 'about':
                 require_once 'templates/page.about.html';
                 break;
@@ -31,6 +29,14 @@ class SchoolExplorer
 
             case 'map':
                 require_once 'templates/page.map.html';
+                break;
+
+            case 'near':
+                $this->sendAPIResponse();
+                break;
+
+            case 'info':
+                $this->sendAPIResponse();
                 break;
 
             default: //home
@@ -192,6 +198,150 @@ EOD;
 //        $query = preg_replace("#<URI>#", "<$uri>", $SPARQL_prefixes.$this->config['sparql_query'][$type]);
 
         return STORE_URI."?query=".urlencode($SPARQL_prefixes.$query)."&output=json";
+    }
+
+
+    function setAPIElements()
+    {
+        //Using arrays for query paramaters for extensibility
+        $this->config['apiElements'] = array(
+            'info' => array('location'),
+            'near' => array('center') //How about we use en-uk's "centre"?
+        );
+    }
+
+
+    function getAPIElements()
+    {
+        return $this->config['apiElements'];
+    }
+
+
+    function sendAPIResponse()
+    {
+        $response = $this->getRequestedData();
+        $this->returnJSON($response);
+    }
+
+
+    function getHTTPRequest()
+    {
+        $this->config['requestPath'] = array();
+        $this->config['requestQuery'] = array();
+
+        $url = parse_url(substr($_SERVER['REQUEST_URI'], 1));
+
+        $this->config['requestPath'] = explode('/', $url['path']);
+
+        if (isset($url['query'])) {
+            $queries = explode('&', $url['query']);
+
+            $requestQuery = array();
+
+            foreach ($queries as $query) {
+                $key = $value = '';
+                list($key, $value) = explode("=", $query) + Array(1 => null, null);
+
+                if (!isset($value) || empty($value)) {
+                    $this->returnError('malformed');
+                }
+                $requestQuery[$key] = $value;
+            }
+
+            //Make sure that we have a proper query
+            if (count($requestQuery) < 1) {
+                $this->returnError('malformed');
+            }
+
+            $this->config['requestQuery'] = $requestQuery;
+        }
+    }
+
+
+    function getRequestedData()
+    {
+        $paths   = $this->config['requestPath'];
+        $queries = $this->config['requestQuery'];
+
+        $apiElement = null;
+        $apiElements = $this->getAPIElements();
+
+        //See if our path is in allowed API functions. Use the first match.
+        foreach($paths as $path) {
+            if (array_key_exists($path, $apiElements)) {
+                $apiElement = $path;
+                break;
+            }
+        }
+
+        if (is_null($apiElement)) {
+            $this->returnError('missing');
+        }
+
+        $apiElementKeyValue = null;
+
+        //Make sure that the query param is allowed
+        foreach($queries as $query => $kv) {
+            if (in_array($query, $apiElements[$apiElement])) {
+                $apiElementKeyValue[$query] = $kv;
+            }
+        }
+
+        if (is_null($apiElementKeyValue)) {
+            $this->returnError('missing');
+        }
+
+        $query = '';
+        $values = explode(',', implode(',', array_values($apiElementKeyValue)));
+
+        switch($apiElement) {
+            //Get all items near a point
+            //Input: near?center=lat,long
+            //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
+            case 'info':
+                if (count($values) == 2) {
+                    //Basic clean up
+                    $center = array();
+                    foreach ($values as $v) {
+                        $v = trim($v);
+
+                        $center[] = is_numeric($v) ? $v : null;
+                    }
+
+                    if (in_array(null, $center)) {
+                        $this->returnError('malformed');
+                    }
+
+                    $query = <<<EOD
+                        SELECT ?point ?property ?object
+                        WHERE {
+                            ?point wgs:lat "$center[0]"^^xsd:decimal .
+                            ?point wgs:long "$center[1]"^^xsd:decimal .
+                            ?point ?property ?object .
+                        }
+EOD;
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
+                }
+                else {
+                    $this->returnError('missing');
+                }
+                break;
+
+            default:
+                $this->returnError('missing');
+                break;
+        }
+    }
+
+
+    function returnJSON($response = null)
+    {
+        header('Content-type: application/json; charset=utf-8');
+
+        echo $response;
+        exit;
     }
 
 }
