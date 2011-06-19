@@ -301,17 +301,7 @@ EOD;
             //e.g., http://school-explorer/info?location=53.2744122,-9.0490632
             case 'info':
                 if (count($values) == 2) {
-                    //Basic clean up
-                    $center = array();
-                    foreach ($values as $v) {
-                        $v = trim($v);
-
-                        $center[] = is_numeric($v) ? $v : null;
-                    }
-
-                    if (in_array(null, $center)) {
-                        $this->returnError('malformed');
-                    }
+                    $center = $this->cleanLocation($values);
 
                     $query = <<<EOD
                         SELECT ?point ?property ?object
@@ -336,6 +326,22 @@ EOD;
         }
     }
 
+
+    function cleanLocation($values)
+    {
+        $center = array();
+        foreach ($values as $v) {
+            $v = trim($v);
+
+            $center[] = is_numeric($v) ? $v : null;
+        }
+
+        if (in_array(null, $center)) {
+            $this->returnError('malformed');
+        }
+
+        return $center;
+    }
 
     function returnJSON($response = null)
     {
