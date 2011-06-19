@@ -3,7 +3,6 @@
 class SchoolExplorer
 {
     var $config;
-    var $requestPath;
 
     function __construct()
     {
@@ -19,7 +18,7 @@ class SchoolExplorer
                 require_once 'templates/page.about.html';
                 break;
 
-            case 'school':
+            case 'schools':
                 require_once 'templates/page.school.html';
                 break;
 
@@ -56,23 +55,26 @@ class SchoolExplorer
 
     function school()
     {
-        $s = '';
+        $paths = $this->config['requestPath'];
 
-        if (isset($this->requestPath[1]) && !empty($this->requestPath[1])) {
-            $s .= "\n".'<p>Load school id.</p>';
-        }
-        else {
-            $s .= "\n".'<p>Load school landing page.</p>';
-        }
-
-        $query = <<<EOD
-SELECT ?city ?cityLabel
+        if (isset($paths[1]) && !empty($paths[1])) {
+            $query = <<<EOD
+SELECT ?school ?property ?object
 WHERE {
-    ?city a geoDataGov:City .
-    ?city a skos:Concept .
-    ?city skos:prefLabel ?cityLabel .
+    <http://govdata.ie/schools/$paths[1]> ?property ?object .
 }
 EOD;
+        }
+        else {
+            $query = <<<EOD
+SELECT ?school ?establishmentName
+WHERE {
+    ?school a sch-ont:School .
+    ?school sch-ont:establishmentName ?establishmentName .
+}
+ORDER BY ASC(?establishmentName)
+EOD;
+        }
 
         $uri = $this->buildQueryURI($query);
 
@@ -80,7 +82,12 @@ EOD;
 
         $response = json_decode($response, true);
 
-        $response = $this->showList($response, 'Cities');
+        if (isset($paths[1]) && !empty($paths[1])) {
+            $response = $this->showSchool($response);
+        }
+        else {
+            $response = $this->showList($response, 'Schools');
+        }
 
         return $response;
     }
@@ -107,6 +114,7 @@ EOD;
 EOD;
         foreach($bindings as $key => $value) {
             foreach($vars as $k => $var) {
+                $textContent = '';
                 if ($value[$var]['type'] == 'uri') {
                     //TODO: @href would probably be mapped from something
                     $href = $value[$var]['value'];
@@ -124,6 +132,37 @@ EOD;
             </dd>
         </dl>
 EOD;
+        return $s;
+    }
+
+
+    function showSchool($data)
+    {
+        $vars = $data['head']['vars'];
+
+        $bindings = $data['results']['bindings'];
+
+        $s = <<<EOD
+        <dl>
+EOD;
+        foreach($bindings as $key => $value) {
+            foreach($value as $k => $v) {
+                if ($k == 'property') {
+                    $property = $value['property']['value'];
+                }
+                else {
+                    $object = $value['object']['value'];
+                }
+
+            }
+            $s .= <<<EOD
+                <dt>$property</dt>
+                <dd>$object</dd>
+EOD;
+
+        }
+        $s .= '</dl>';
+
         return $s;
     }
 
@@ -325,6 +364,31 @@ EOD;
                 }
                 break;
 
+            case 'near':
+                if (count($values) == 2) {
+                    $center = $this->cleanLocation($values);
+
+                    $query = <<<EOD
+                        SELECT ?school ?property ?object
+                        WHERE {
+                            ?school a sch-ont:School .
+                            ?school ?property ?object .
+                            FILTER (
+                                ?point wgs:lat "$center[0]"^^xsd:decimal and
+                                ?point wgs:long "$center[1]"^^xsd:decimal .
+                            )
+                        }
+
+EOD;
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
+                }
+                else {
+                    $this->returnError('missing');
+                }
+                break;
+
             default:
                 $this->returnError('missing');
                 break;
@@ -347,6 +411,7 @@ EOD;
 
         return $center;
     }
+
 
     function returnJSON($response = null)
     {
