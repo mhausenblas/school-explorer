@@ -7,7 +7,7 @@ class SchoolExplorer
 
     function __construct()
     {
-        define('STORE_URI', 'http://data-gov.ie/sparql');
+        define('STORE_URI', 'http://govdata.ie/sparql');
 
         $this->config = array();
         $this->setPrefixes();
@@ -176,12 +176,12 @@ EOD;
 
             'year'         => 'http://reference.data.gov.uk/id/year/',
 
-            'statsDataGov' => 'http://stats.data-gov.ie/',
-            'concept'      => 'http://stats.data-gov.ie/concept/',
-            'codelist'     => 'http://stats.data-gov.ie/codelist/',
-            'dsd'          => 'http://stats.data-gov.ie/dsd/',
-            'property'     => 'http://stats.data-gov.ie/property/',
-            'geoDataGov'   => 'http://geo.data-gov.ie/'
+            'statsDataGov' => 'http://stats.govdata.ie/',
+            'concept'      => 'http://stats.govdata.ie/concept/',
+            'codelist'     => 'http://stats.govdata.ie/codelist/',
+            'dsd'          => 'http://stats.govdata.ie/dsd/',
+            'property'     => 'http://stats.govdata.ie/property/',
+            'geoDataGov'   => 'http://geo.govdata.ie/'
         );
     }
 
@@ -298,6 +298,7 @@ EOD;
             //Get all items near a point
             //Input: near?center=lat,long
             //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
+            //e.g., http://school-explorer/info?location=53.2744122,-9.0490632
             case 'info':
                 if (count($values) == 2) {
                     //Basic clean up
@@ -340,6 +341,9 @@ EOD;
     {
         header('Content-type: application/json; charset=utf-8');
 
+        $response = json_decode($response, true);
+        $response = $response['results']['bindings'];
+        $response = '{"data": '.json_encode($response).'}';
         echo $response;
         exit;
     }
