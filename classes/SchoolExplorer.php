@@ -148,7 +148,7 @@ EOD;
         foreach($bindings as $key => $value) {
             foreach($value as $k => $v) {
                 if ($k == 'property') {
-                    $property = $value['property']['value'];
+                    $property = $this->getPrefixName($value['property']['value']);
                 }
                 else {
                     $object = $value['object']['value'];
@@ -166,6 +166,17 @@ EOD;
         return $s;
     }
 
+
+    function getPrefixName($uri)
+    {
+        $prefixName = array_search(strstr($uri, '#', true).'#', $this->config['prefixes']);
+        if ($prefixName) {
+            return $prefixName;
+        }
+        else {
+            return $uri;
+        }
+    }
 
     function curlRequest($uri)
     {
