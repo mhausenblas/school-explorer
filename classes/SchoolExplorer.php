@@ -18,7 +18,7 @@ class SchoolExplorer
                 require_once 'templates/page.about.html';
                 break;
 
-            case 'schools':
+            case 'school':
                 require_once 'templates/page.school.html';
                 break;
 
@@ -61,7 +61,7 @@ class SchoolExplorer
             $query = <<<EOD
 SELECT ?school ?property ?object
 WHERE {
-    <http://govdata.ie/schools/$paths[1]> ?property ?object .
+    <http://govdata.ie/school/$paths[1]> ?property ?object .
 }
 EOD;
         }
