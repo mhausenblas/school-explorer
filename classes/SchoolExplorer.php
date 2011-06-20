@@ -120,7 +120,8 @@ EOD;
                     $href = $value[$var]['value'];
                 }
                 else {
-                    $textContent = $value[$var]['value'];
+                    $textContent = ($value[$var]['value'] != '<Null>') ? $value[$var]['value'] : '';
+                    $textContent = $this->htmlEscape($textContent);
                 }
             }
 
@@ -433,6 +434,19 @@ EOD;
         $response = '{"data": '.json_encode($response).'}';
         echo $response;
         exit;
+    }
+
+
+    function htmlEscape($string)
+    {
+        static $convmap = array( 34,    34, 0, 0xffff,
+                                 38,    38, 0, 0xffff,
+                                 39,    39, 0, 0xffff,
+                                 60,    60, 0, 0xffff,
+                                 62,    62, 0, 0xffff,
+                                128, 10240, 0, 0xffff);
+
+        return mb_encode_numericentity($string, $convmap, 'UTF-8');
     }
 
 }
