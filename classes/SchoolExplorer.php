@@ -370,6 +370,7 @@ EOD;
                     wgs:lat ?lat ;
                     wgs:long ?long .
             }
+
 EOD;
 
         switch($apiElement) {
@@ -387,7 +388,7 @@ EOD;
                     $query = <<<EOD
                         SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religiousCharacater ?lat ?long
                         WHERE {
-                            ?school rdfs:label $schoolName .
+                            ?school rdfs:label "$schoolName" .
                             $schoolGraph
                         }
 EOD;
