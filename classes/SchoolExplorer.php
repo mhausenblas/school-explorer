@@ -6,7 +6,7 @@ class SchoolExplorer
 
     function __construct()
     {
-        define('STORE_URI', 'http://govdata.ie/sparql');
+        define('STORE_URI', 'http://data-gov.ie/sparql');
 
         $this->config = array();
         $this->setPrefixes();
