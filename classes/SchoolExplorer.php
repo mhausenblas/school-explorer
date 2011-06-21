@@ -61,7 +61,7 @@ class SchoolExplorer
             $query = <<<EOD
 SELECT ?school ?property ?object
 WHERE {
-    <http://govdata.ie/school/$paths[1]> ?property ?object .
+    <http://data-gov.ie/school/$paths[1]> ?property ?object .
 }
 EOD;
         }
@@ -230,12 +230,12 @@ EOD;
 
             'year'         => 'http://reference.data.gov.uk/id/year/',
 
-            'statsDataGov' => 'http://stats.govdata.ie/',
-            'concept'      => 'http://stats.govdata.ie/concept/',
-            'codelist'     => 'http://stats.govdata.ie/codelist/',
-            'dsd'          => 'http://stats.govdata.ie/dsd/',
-            'property'     => 'http://stats.govdata.ie/property/',
-            'geoDataGov'   => 'http://geo.govdata.ie/',
+            'statsDataGov' => 'http://stats.data-gov.ie/',
+            'concept'      => 'http://stats.data-gov.ie/concept/',
+            'codelist'     => 'http://stats.data-gov.ie/codelist/',
+            'dsd'          => 'http://stats.data-gov.ie/dsd/',
+            'property'     => 'http://stats.data-gov.ie/property/',
+            'geoDataGov'   => 'http://geo.data-gov.ie/',
 
             'sch-ont' => 'http://education.data.gov.uk/ontology/school#'
         );
