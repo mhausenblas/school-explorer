@@ -10,6 +10,7 @@ class SchoolExplorer
 
         $this->config = array();
         $this->setPrefixes();
+        $this->setObjectMapping();
         $this->setAPIElements();
         $this->getHTTPRequest();
 
@@ -241,7 +242,11 @@ EOD;
 
             'afn' => 'http://jena.hpl.hp.com/ARQ/function#'
         );
+    }
 
+
+    function setObjectMapping()
+    {
         //XXX: Yea, I'm not sure about this. Revisit.
         $this->config['religions'] = array(
             'Inter-___non-_denominational' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
@@ -251,8 +256,13 @@ EOD;
             'Catholic' => 'http://data-gov.ie/ReligiousCharacter/',
             'Church_of_Ireland' => 'http://data-gov.ie/ReligiousCharacter/'
         );
-    }
 
+        $this->config['genders'] = array(
+            'Gender_Mixed' => $this->getPrefix('sch-ont'),
+            'Gender_Girls' => $this->getPrefix('sch-ont'),
+            'Gender_Boys' => $this->getPrefix('sch-ont')
+        );
+    }
 
     function buildQueryURI($query = null)
     {
@@ -263,7 +273,6 @@ EOD;
             $SPARQL_prefixes .= "PREFIX $prefixName: <$namespace>\n";
         }
 
-//        $query = preg_replace("#<URI>#", "<$uri>", $SPARQL_prefixes.$this->config['sparql_query'][$type]);
         return STORE_URI."?query=".urlencode($SPARQL_prefixes.$query)."&output=json";
     }
 
@@ -365,6 +374,7 @@ EOD;
         $schoolId = $this->getSchoolId($apiElementKeyValue);
         $schoolName = $this->getSchoolName($apiElementKeyValue);
         $religion = $this->getReligion($apiElementKeyValue);
+        $gender = $this->getGender($apiElementKeyValue);
 
         $schoolGraph = <<<EOD
             ?school a sch-ont:School .
@@ -384,7 +394,9 @@ EOD;
 
 EOD;
 
-        $religionGraph = (!empty($religion) && in_array($religion, $this->config['religions'])) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
+        $religionGraph = (!empty($religion) && array_key_exists($religion, $this->config['religions'])) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
+
+        $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? '?school sch-ont:gender <'.$this->config['genders'][$gender].$gender.'> .' : '';
 
         switch($apiElement) {
             //Get all items near a point
@@ -418,7 +430,7 @@ EOD;
             //Get all items near a point
             //Input: near?center=lat,long&
             //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
-            //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304&religion=Catholic
+            //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304&religion=Catholic&gender=Gender_Boys
             case 'near':
                 if (count($location) >= 2) {
                     $query = <<<EOD
@@ -426,6 +438,7 @@ EOD;
                         WHERE {
                             $schoolGraph
                             $religionGraph
+                            $genderGraph
                             BIND (afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) AS ?distance)
                         }
                         ORDER BY ?distance
@@ -487,6 +500,16 @@ EOD;
     {
         if (isset($apiElementKeyValue['religion']) && !empty($apiElementKeyValue['religion'])) {
             return trim($apiElementKeyValue['religion']);
+        }
+
+        return;
+    }
+
+
+    function getGender($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['gender']) && !empty($apiElementKeyValue['gender'])) {
+            return trim($apiElementKeyValue['gender']);
         }
 
         return;
