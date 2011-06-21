@@ -1,10 +1,10 @@
 /*
  * @category  UI interaction
  * @package   
- * @author    Sarven Capadisli <sarven.capadisli@deri.org>
- * @copyright 2010 Digital Enterprise Research Institute
+ * @author    Michael Hausenblas <michael.hausenblas@deri.org>
+ * @copyright Public Domain
  * @license   
- * @link      http://deri.org/
+ * @link      http://deri.ie/
  */
 
 
