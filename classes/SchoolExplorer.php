@@ -237,7 +237,9 @@ EOD;
             'property'     => 'http://stats.data-gov.ie/property/',
             'geoDataGov'   => 'http://geo.data-gov.ie/',
 
-            'sch-ont' => 'http://education.data.gov.uk/ontology/school#'
+            'sch-ont' => 'http://education.data.gov.uk/ontology/school#',
+
+            'afn' => 'http://jena.hpl.hp.com/ARQ/function#'
         );
     }
 
@@ -252,7 +254,6 @@ EOD;
         }
 
 //        $query = preg_replace("#<URI>#", "<$uri>", $SPARQL_prefixes.$this->config['sparql_query'][$type]);
-
         return STORE_URI."?query=".urlencode($SPARQL_prefixes.$query)."&output=json";
     }
 
@@ -261,8 +262,8 @@ EOD;
     {
         //Using arrays for query paramaters for extensibility
         $this->config['apiElements'] = array(
-            'info' => array('location'),
-            'near' => array('center') //How about we use en-uk's "centre"?
+            'info' => array('school_id', 'school_name'),
+            'near' => array('center', 'religion', 'gender') //How about we use en-uk's "centre"?
         );
     }
 
@@ -348,49 +349,83 @@ EOD;
         }
 
         $query = '';
-        $values = explode(',', implode(',', array_values($apiElementKeyValue)));
+
+        //TODO: Make this more abstract
+        $location = $this->getLocation($apiElementKeyValue);
+        $schoolId = $this->getSchoolId($apiElementKeyValue);
+        $schoolName = $this->getSchoolName($apiElementKeyValue);
 
         switch($apiElement) {
             //Get all items near a point
-            //Input: near?center=lat,long
-            //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
-            //e.g., http://school-explorer/info?location=53.2744122,-9.0490632
+            //Input: school?id=reference&name=establishmentName
+            //Either id or name is required.
+            //Output: Information about school
+            //e.g., http://school-explorer/info?schoolid=71990R&schoolname=St Oliver Post Primary
             case 'info':
-                if (count($values) == 2) {
-                    $center = $this->cleanLocation($values);
 
+                if (!empty($schoolId)) {
+/*
                     $query = <<<EOD
                         SELECT ?point ?property ?object
                         WHERE {
-                            ?point wgs:lat "$center[0]"^^xsd:decimal .
-                            ?point wgs:long "$center[1]"^^xsd:decimal .
+                            ?point wgs:lat "$location[0]"^^xsd:decimal .
+                            ?point wgs:long "$location[1]"^^xsd:decimal .
                             ?point ?property ?object .
                         }
 EOD;
+*/
+                    $query = <<<EOD
+                        SELECT ?school ?property ?object
+                        WHERE {
+                            <http://data-gov.ie/school/$schoolId> a sch-ont:School .
+                            <http://data-gov.ie/school/$schoolId> ?property ?object .
+
+                            BIND (<http://data-gov.ie/school/$schoolId> AS ?school)
+                        }
+EOD;
+
                     $uri = $this->buildQueryURI($query);
 
                     return $this->curlRequest($uri);
                 }
+                else if (!empty($schoolName)) {
+                    $query = <<<EOD
+                        SELECT ?school ?property ?object
+                        WHERE {
+                            ?school sch-ont:establishmentName $schoolName .
+                            ?school ?property ?object .
+                        }
+EOD;
+
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
+                                }
                 else {
                     $this->returnError('missing');
                 }
                 break;
 
+            //Get all items near a point
+            //Input: near?center=lat,long&
+            //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
+            //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304
             case 'near':
-                if (count($values) == 2) {
-                    $center = $this->cleanLocation($values);
-
+                if (count($location) >= 2) {
                     $query = <<<EOD
-                        SELECT ?school ?property ?object
+                        SELECT DISTINCT ?school ?property ?object
                         WHERE {
                             ?school a sch-ont:School .
+                            ?school wgs:lat ?lat .
+                            ?school wgs:long ?long .
                             ?school ?property ?object .
-                            FILTER (
-                                ?point wgs:lat "$center[0]"^^xsd:decimal and
-                                ?point wgs:long "$center[1]"^^xsd:decimal .
-                            )
-                        }
 
+                            FILTER (isNumeric(?lat) && isNumeric(?long)) .
+
+                            BIND (afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) AS ?distance)
+                        }
+                        ORDER BY ?distance
+                        LIMIT 50
 EOD;
                     $uri = $this->buildQueryURI($query);
 
@@ -405,6 +440,42 @@ EOD;
                 $this->returnError('missing');
                 break;
         }
+    }
+
+
+    function getLocation($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['center']) && !empty($apiElementKeyValue['center'])) {
+            $values = explode(',', $apiElementKeyValue['center']);
+
+            $this->cleanLocation($values);
+
+            if (count($values) == 2) {
+                return $values;
+            }
+        }
+
+        return array();
+    }
+
+
+    function getSchoolId($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['school_id']) && !empty($apiElementKeyValue['school_id'])) {
+            return trim($apiElementKeyValue['school_id']);
+        }
+
+        return;
+    }
+
+
+    function getSchoolName($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['school_name']) && !empty($apiElementKeyValue['school_name'])) {
+            return trim($apiElementKeyValue['school_name']);
+        }
+
+        return;
     }
 
 
@@ -433,6 +504,28 @@ EOD;
         $response = $response['results']['bindings'];
         $response = '{"data": '.json_encode($response).'}';
         echo $response;
+        exit;
+    }
+
+
+    function returnError($errorType)
+    {
+        header('HTTP/1.1 400 Bad Request');
+        header('Content-type: text/plain; charset=utf-8');
+
+        $s = '';
+
+        switch($errorType) {
+            case 'missing': default:
+                $s .= 'Missing..';
+                break;
+            case 'malformed':
+                $s .= 'Malformed..';
+                break;
+        }
+
+        echo $s;
+
         exit;
     }
 
