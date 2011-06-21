@@ -355,6 +355,23 @@ EOD;
         $schoolId = $this->getSchoolId($apiElementKeyValue);
         $schoolName = $this->getSchoolName($apiElementKeyValue);
 
+        $schoolGraph = <<<EOD
+            ?school a sch-ont:School .
+            OPTIONAL { ?school sch-ont:address [ sch-ont:address1 ?address1 ] . }
+            OPTIONAL { ?school sch-ont:address [ sch-ont:address2 ?address2 ] . }
+            OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
+            ?school
+                rdfs:label ?label ;
+                sch-ont:gender ?gender ;
+                sch-ont:region ?region ;
+                sch-ont:religiousCharacter ?religiousCaracter ;
+            OPTIONAL {
+                ?school
+                    wgs:lat ?lat ;
+                    wgs:long ?long .
+            }
+EOD;
+
         switch($apiElement) {
             //Get all items near a point
             //Input: school?id=reference&name=establishmentName
@@ -364,36 +381,14 @@ EOD;
             case 'info':
 
                 if (!empty($schoolId)) {
-/*
-                    $query = <<<EOD
-                        SELECT ?point ?property ?object
-                        WHERE {
-                            ?point wgs:lat "$location[0]"^^xsd:decimal .
-                            ?point wgs:long "$location[1]"^^xsd:decimal .
-                            ?point ?property ?object .
-                        }
-EOD;
-*/
-                    $query = <<<EOD
-                        SELECT ?school ?property ?object
-                        WHERE {
-                            <http://data-gov.ie/school/$schoolId> a sch-ont:School .
-                            <http://data-gov.ie/school/$schoolId> ?property ?object .
-
-                            BIND (<http://data-gov.ie/school/$schoolId> AS ?school)
-                        }
-EOD;
-
-                    $uri = $this->buildQueryURI($query);
-
-                    return $this->curlRequest($uri);
+//XXX: Probably don't need this.
                 }
                 else if (!empty($schoolName)) {
                     $query = <<<EOD
-                        SELECT ?school ?property ?object
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religiousCharacater ?lat ?long
                         WHERE {
-                            ?school sch-ont:establishmentName $schoolName .
-                            ?school ?property ?object .
+                            ?school rdfs:label $schoolName .
+                            $schoolGraph
                         }
 EOD;
 
@@ -413,14 +408,9 @@ EOD;
             case 'near':
                 if (count($location) >= 2) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?property ?object
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religiousCharacater ?lat ?long ?distance
                         WHERE {
-                            ?school a sch-ont:School .
-                            ?school wgs:lat ?lat .
-                            ?school wgs:long ?long .
-                            ?school ?property ?object .
-
-                            FILTER (isNumeric(?lat) && isNumeric(?long)) .
+                            $schoolGraph
 
                             BIND (afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) AS ?distance)
                         }
