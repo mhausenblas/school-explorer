@@ -241,6 +241,16 @@ EOD;
 
             'afn' => 'http://jena.hpl.hp.com/ARQ/function#'
         );
+
+        //XXX: Yea, I'm not sure about this. Revisit.
+        $this->config['religions'] = array(
+            'Inter-___non-_denominational' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
+            'Methodist' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
+            'Quaker' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
+            'Jewish' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
+            'Catholic' => 'http://data-gov.ie/ReligiousCharacter/',
+            'Church_of_Ireland' => 'http://data-gov.ie/ReligiousCharacter/'
+        );
     }
 
 
@@ -354,6 +364,7 @@ EOD;
         $location = $this->getLocation($apiElementKeyValue);
         $schoolId = $this->getSchoolId($apiElementKeyValue);
         $schoolName = $this->getSchoolName($apiElementKeyValue);
+        $religion = $this->getReligion($apiElementKeyValue);
 
         $schoolGraph = <<<EOD
             ?school a sch-ont:School .
@@ -364,7 +375,7 @@ EOD;
                 rdfs:label ?label ;
                 sch-ont:gender ?gender ;
                 sch-ont:region ?region ;
-                sch-ont:religiousCharacter ?religiousCaracter ;
+                sch-ont:religiousCharacter ?religion ;
             OPTIONAL {
                 ?school
                     wgs:lat ?lat ;
@@ -372,6 +383,8 @@ EOD;
             }
 
 EOD;
+
+        $religionGraph = (!empty($religion)) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
 
         switch($apiElement) {
             //Get all items near a point
@@ -386,7 +399,7 @@ EOD;
                 }
                 else if (!empty($schoolName)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religiousCharacater ?lat ?long
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
                         WHERE {
                             ?school rdfs:label "$schoolName" .
                             $schoolGraph
@@ -405,14 +418,14 @@ EOD;
             //Get all items near a point
             //Input: near?center=lat,long&
             //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
-            //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304
+            //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304&religion=Catholic
             case 'near':
                 if (count($location) >= 2) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religiousCharacater ?lat ?long ?distance
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long ?distance
                         WHERE {
                             $schoolGraph
-
+                            $religionGraph
                             BIND (afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) AS ?distance)
                         }
                         ORDER BY ?distance
@@ -464,6 +477,16 @@ EOD;
     {
         if (isset($apiElementKeyValue['school_name']) && !empty($apiElementKeyValue['school_name'])) {
             return trim($apiElementKeyValue['school_name']);
+        }
+
+        return;
+    }
+
+
+    function getReligion($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['religion']) && !empty($apiElementKeyValue['religion'])) {
+            return trim($apiElementKeyValue['religion']);
         }
 
         return;
