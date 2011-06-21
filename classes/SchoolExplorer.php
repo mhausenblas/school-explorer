@@ -403,7 +403,7 @@ EOD;
             //Input: school?id=reference&name=establishmentName
             //Either id or name is required.
             //Output: Information about school
-            //e.g., http://school-explorer/info?schoolid=71990R&schoolname=St Oliver Post Primary
+            //e.g., http://school-explorer/info?schoolid=71990R&schoolname=Loreto Secondary School
             case 'info':
 
                 if (!empty($schoolId)) {
@@ -413,8 +413,9 @@ EOD;
                     $query = <<<EOD
                         SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
                         WHERE {
-                            ?school rdfs:label "$schoolName" .
+                            ?school rdfs:label ?label .
                             $schoolGraph
+                            FILTER ("$schoolName" = str(?label))
                         }
 EOD;
 
@@ -489,7 +490,7 @@ EOD;
     function getSchoolName($apiElementKeyValue)
     {
         if (isset($apiElementKeyValue['school_name']) && !empty($apiElementKeyValue['school_name'])) {
-            return trim($apiElementKeyValue['school_name']);
+            return urldecode(trim($apiElementKeyValue['school_name']));
         }
 
         return;
