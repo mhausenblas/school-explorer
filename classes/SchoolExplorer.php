@@ -384,7 +384,7 @@ EOD;
 
 EOD;
 
-        $religionGraph = (!empty($religion)) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
+        $religionGraph = (!empty($religion) && in_array($religion, $this->config['religions'])) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
 
         switch($apiElement) {
             //Get all items near a point
