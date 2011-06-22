@@ -20,38 +20,39 @@
                     </dd>
                 </dl>
 
-                <form id="form_search">
-                    <fieldset>
-                        <legend>Search</legend>
-                        <ul class="form_data">
-                            <li>
-                                <label for="address">Address</label>
-                                <input id="address" name="address" type="text" value=""/>
-                            </li>
-                            <li>
-                                <label for="religion">Religion</label>
-                                <select id="religion" name="religion">
-                                    <option value="">Any</option>
-                                    <option value="Catholic">Catholic</option>
-                                    <option value="Church_of_Ireland">Church of Ireland</option>
-                                    <option value="Inter-___non-_denominatiol">Inter- / non- denominational</option>
-                                    <option value="Jewish">Jewish</option>
-                                    <option value="Methodist">Methodist</option>
-                                    <option value="Quaker">Quaker</option>
-                                </select>
-                            </li>
-                            <li>
-                                <label for="gender">Gender</label>
-                                <select id="gender" name="gender">
-                                    <option value="Gender_Mixed">Mixed</option>
-                                    <option value="Gender_Boys">Boys</option>
-                                    <option value="Gender_Girls">Girls</option>
-
-                                </select>
-                            </li>
-                        </ul>
-                        <input id="form_submit" type="button" class="submit" value="Search"/>
+				<div id="form_search">
+					<fieldset>
+						<legend>Search</legend>
+						<div class="form_data">
+						<span>
+							<label for="address">Address</label>
+							<input id="address" name="address" type="text" size="35" value="32 Bushypark Lawn, Galway, Ireland"/>
+						</span>
+						<span>
+							<label for="religion">Religion</label>
+							<select id="religion" name="religion">
+								<option value="">Any</option>
+								<option value="Catholic">Catholic</option>
+								<option value="Church_of_Ireland">Church of Ireland</option>
+								<option value="Inter-___non-_denominatiol">Non-denominational</option>
+								<option value="Jewish">Jewish</option>
+								<option value="Methodist">Methodist</option>
+								<option value="Quaker">Quaker</option>
+							</select>
+						</span>
+						<span>
+							<label for="gender">Gender</label>
+							<select id="gender" name="gender">
+								<option value="Gender_Mixed">Mixed</option>
+								<option value="Gender_Boys">Boys</option>
+								<option value="Gender_Girls">Girls</option>
+							</select>
+						</span>
+						<span>
+							<input type="button" id="find_school" class="submit" value="Find me schools!" />
+						</span>
+						</div>
                     </fieldset>
-                </form>
+                </div>
             </div>
 

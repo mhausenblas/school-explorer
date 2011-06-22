@@ -41,12 +41,12 @@ legend {
 font-weight:bold;
 font-size:1.3em;
 }
-input, textarea, select, option {
+input, textarea, select, option, button {
 padding:4px;
 font-family:sans-serif;
 font-size:1em;
 }
-input, textarea, select {
+input, textarea, select, button {
 border-radius:4px;
 -moz-border-radius:4px;
 -webkit-border-radius:4px;
@@ -241,7 +241,7 @@ clear:both;
 display:none;
 }
 
-#form_search .form_data li {
+#form_search .form_data span {
 float:left;
 margin-right:1em;
 margin-bottom:0;

@@ -11,14 +11,48 @@
 var SE = { // School Explorer
 	
 	C: { // constant values
-		infoAPI: "info?location=" //such as info?location=53.2744122,-9.0490632
+		nearBase: "near?center=" //such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
+	},
+	
+	
+	handleInteraction: function(){
+		// the search button has been hit, show nearby schools
+		$("#find_school").click(function(){
+			SE.showSchools();
+		});
+		$("#find_school").mousedown(function(){
+			$(this).removeClass('submit');
+		});
+		$("#find_school").mouseup(function(){
+			$(this).addClass('submit');
+		});
+		
+		// the ENTER key has been hit in the address field, show nearby schools
+		$("#address").keypress(function(e) {
+			var code = (e.keyCode ? e.keyCode : e.which);
+			if (code == 13) {
+				SE.showSchools();
+			}
+		});
 	},
 	
 	showSchools: function() {
-		$("#form_submit").click(function(){ // the search button has been hit, show nearby schools
-			var a = $("#address").val();
-			SE.position2Address(a, function(lat, lng){
-				console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
+		var a = $("#address").val();
+		SE.position2Address(a, function(lat, lng){
+			console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
+			$.getJSON(SE.C.nearBase + lat + "," + lng, function(data, textStatus){
+				if(data) {
+					var b = "";
+					var rows = data.data;
+					b += "<div>POI:</div>";
+					for(i in rows) {
+						var row = rows[i];
+						b += "<div>";
+						b += "<a href='" + row["school"].value + "'>" + row["label"].value + "</a>";
+						b += "</div>";
+					}
+					$("#school_map").html(b);
+				}
 			});
 		});
 	},
@@ -48,6 +82,6 @@ var SE = { // School Explorer
 
 $(document).ready(function(){
 	if ($("#form_search")) {
-		SE.showSchools();
+		SE.handleInteraction();
 	}
 });
