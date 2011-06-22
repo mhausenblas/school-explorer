@@ -1,0 +1,44 @@
+<html>
+  <head>
+  <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var data = new google.visualization.DataTable();
+        
+        data.addColumn('string', 'School Grades');
+        data.addColumn('number', 'no. of students');
+
+		// instead of test.js, retrieve the json data using API
+        $.getJSON("test.js", function(json) {
+    		$.each(json.data, function(i,grade){
+    			// incremental add rows based on the number of records in json result
+    			data.addRows(1);
+    			
+    			// Display "FirstYear" instead of "http://data-gov.ie/SchoolGrade/FirstYear"
+    			data.setValue(i, 0, grade.schoolGrade.value.substring(grade.schoolGrade.value.lastIndexOf("/")+1));
+
+    			// convert String into integer
+    			data.setValue(i, 1, parseInt(grade.numberOfStudents.value));
+    		});
+   	 	});
+   	 	
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+        chart.draw(data, {width: 500, height: 240, title: 'SchoolGrades Distribution',
+                          hAxis: {title: 'School Grades', titleTextStyle: {color: 'red'}},
+                          vAxis: {title: 'No. of Students', titleTextStyle: {color: 'red'}}
+                         });
+                         
+      }
+
+    </script>
+  </head>
+
+  <body>
+    <div id="chart_div"></div>
+  </body>
+</html>
