@@ -39,6 +39,22 @@ Example:
 
 	http://school-explorer/info?school_name=Loreto Secondary School
 
+### Enrolment
+Get enrolment data for schools
+
+Input
+
+    enrolment?school_id=schoolURI (expecting schoolURI to be urlencoded)
+
+Output:
+
+Enrolment information for school URI provided
+
+Example:
+
+http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+
+
 
 ## License
 
