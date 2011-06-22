@@ -10,10 +10,17 @@
 
 var SE = { // School Explorer
 	
-	C: { // constant values
+	C: { // constant SE-wide values
+		DEFAULT_ZOOM_FACTOR : 13, // the default zoom factor on map init ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
+		// the following are the SE API URI query bases:
 		nearBase: "near?center=" //such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
 	},
 	
+	G: { // SE-wide values
+		smap : undefined,
+		smapWidth : 0.9, // the preferred width of the map
+		smapHeight : 2, // the preferred height of the map
+	},
 	
 	handleInteraction: function(){
 		// the search button has been hit, show nearby schools
@@ -40,18 +47,24 @@ var SE = { // School Explorer
 		var a = $("#address").val();
 		SE.position2Address(a, function(lat, lng){
 			console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
+			
+			// create the map centered on the location of the address
+			SE.initMap(lat, lng);
+			
+			// now, get the schools around this address
 			$.getJSON(SE.C.nearBase + lat + "," + lng, function(data, textStatus){
 				if(data) {
 					var b = "";
 					var rows = data.data;
-					b += "<div>POI:</div>";
+					b += "<div>All:</div>";
 					for(i in rows) {
 						var row = rows[i];
 						b += "<div>";
 						b += "<a href='" + row["school"].value + "'>" + row["label"].value + "</a>";
 						b += "</div>";
+						SE.addSchoolMarker(row);
 					}
-					$("#school_map").html(b);
+					$("#school_details").html(b);
 				}
 			});
 		});
@@ -73,12 +86,40 @@ var SE = { // School Explorer
 				alert("Sorry, I didn't find the address you've provided. Try again, please ...");
 			}
 		});
+	},
+	
+	initMap: function(mapCenterLat, mapCenterLng) {
+		var mapOptions = { 
+			zoom: SE.C.DEFAULT_ZOOM_FACTOR,
+			center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+			mapTypeId: google.maps.MapTypeId.HYBRID,
+			overviewMapControl: true,
+			overviewMapControlOptions: {
+				position: google.maps.ControlPosition.BOTTOM_RIGHT,
+				opened: true
+			}
+		};
+		// create the map with options from above
+		SE.G.smap = new google.maps.Map(document.getElementById("school_map"), mapOptions);
+		
+		// make map fit
+		$("#school_map").width($("#content").width()*SE.G.smapWidth);
+		$("#school_map").height($("#content").height()*SE.G.smapHeight);
+	},
+	
+	addSchoolMarker: function(school){
+		var marker = new google.maps.Marker({
+			position: new google.maps.LatLng(school["lat"].value, school["long"].value),
+			map: SE.G.smap,
+			//icon: mImage,
+			title: school["label"].value
+		});		
+		// google.maps.event.addListener(marker, "click", function() {
+		// });
 	}
 	
-	
-	
+		
 };
-
 
 $(document).ready(function(){
 	if ($("#form_search")) {
