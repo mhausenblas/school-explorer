@@ -98,4 +98,6 @@ background-color:#FFFFCC;
 border-color:#AAAAAA;
 }
 
+#dynam { display: none; }
+
 } /*end of @media screen, projection, tv*/
