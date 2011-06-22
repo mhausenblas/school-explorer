@@ -98,6 +98,18 @@ background-color:#FFFFCC;
 border-color:#AAAAAA;
 }
 
-#dynam { display: none; }
+#dynam {
+display: none;
+}
+
+.school_info {
+font-size: 8pt;
+padding: .3em 1em .3em .3em;
+height: 200px;
+}
+
+.school_info h2 {
+font-size: 10pt;
+}
 
 } /*end of @media screen, projection, tv*/
