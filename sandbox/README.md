@@ -1,0 +1,1 @@
+For experiments, such as visualisations and [charts](http://code.google.com/apis/chart/interactive/docs/gallery/motionchart.html "Visualization: Motion Chart - Google Chart Tools - Google Code").
