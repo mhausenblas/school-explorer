@@ -1,4 +1,12 @@
 <?php
+/*
+ * @category  Base class
+ * @package   
+ * @author    Sarven Capadisli <sarven.capadisli@deri.org>
+ * @copyright Public Domain
+ * @license   
+ * @link      http://deri.ie/
+ */
 
 class SchoolExplorer
 {
@@ -31,11 +39,7 @@ class SchoolExplorer
                 require_once 'templates/page.map.html';
                 break;
 
-            case 'near':
-                $this->sendAPIResponse();
-                break;
-
-            case 'info':
+            case 'near': case 'info': case 'enrolment':
                 $this->sendAPIResponse();
                 break;
 
@@ -237,6 +241,7 @@ EOD;
             'dsd'          => 'http://stats.data-gov.ie/dsd/',
             'property'     => 'http://stats.data-gov.ie/property/',
             'geoDataGov'   => 'http://geo.data-gov.ie/',
+            'DataGov'   => 'http://data-gov.ie/',
 
             'sch-ont' => 'http://education.data.gov.uk/ontology/school#',
 
@@ -282,7 +287,8 @@ EOD;
         //Using arrays for query paramaters for extensibility
         $this->config['apiElements'] = array(
             'info' => array('school_id', 'school_name'),
-            'near' => array('center', 'religion', 'gender') //How about we use en-uk's "centre"?
+            'near' => array('center', 'religion', 'gender'), //How about we use en-uk's "centre"?
+            'enrolment' => array('school_id')
         );
     }
 
@@ -398,22 +404,38 @@ EOD;
 
         $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? '?school sch-ont:gender <'.$this->config['genders'][$gender].$gender.'> .' : '';
 
+        $enrolmentGraph = <<<EOD
+?observation
+    DataGov:numberOfStudents ?numberOfStudents ;
+    DataGov:school ?school ;
+    DataGov:schoolGrade ?schoolGrade ;
+    a qb:Observation .
+EOD;
+
         switch($apiElement) {
             //Get all items near a point
-            //Input: school?id=reference&name=establishmentName
+            //Input: info?school_id=schoolURI&school_name=establishmentName (expecting schoolURI to be urlencoded)
             //Either id or name is required.
             //Output: Information about school
-            //e.g., http://school-explorer/info?schoolid=71990R&schoolname=Loreto Secondary School
+            //e.g., http://school-explorer/info?school_id=71990R&school_name=Loreto Secondary School
             case 'info':
-
                 if (!empty($schoolId)) {
-//XXX: Probably don't need this.
+                    $query = <<<EOD
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
+                        WHERE {
+                            $schoolGraph
+                            FILTER (<$schoolId> = ?school)
+                        }
+EOD;
+
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
                 }
                 else if (!empty($schoolName)) {
                     $query = <<<EOD
                         SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
                         WHERE {
-                            ?school rdfs:label ?label .
                             $schoolGraph
                             FILTER ("$schoolName" = str(?label))
                         }
@@ -422,7 +444,7 @@ EOD;
                     $uri = $this->buildQueryURI($query);
 
                     return $this->curlRequest($uri);
-                                }
+                }
                 else {
                     $this->returnError('missing');
                 }
@@ -454,6 +476,32 @@ EOD;
                 }
                 break;
 
+            //Get enrolment data for schools
+            //Input: enrolment?school_id=schoolURI (expecting schoolURI to be urlencoded)
+            //Output: Enrolment information for school URI provided
+            //e.g., http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+            case 'enrolment':
+                if (!empty($schoolId)) {
+                    $query = <<<EOD
+                        SELECT DISTINCT ?schoolGrade ?numberOfStudents
+                        WHERE {
+                            $schoolGraph
+                            FILTER (<$schoolId> = ?school)
+
+                            $enrolmentGraph
+                        }
+
+EOD;
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
+                }
+                else {
+                    $this->returnError('missing');
+                }
+                break;
+
+
             default:
                 $this->returnError('missing');
                 break;
@@ -480,7 +528,7 @@ EOD;
     function getSchoolId($apiElementKeyValue)
     {
         if (isset($apiElementKeyValue['school_id']) && !empty($apiElementKeyValue['school_id'])) {
-            return trim($apiElementKeyValue['school_id']);
+            return urldecode(trim($apiElementKeyValue['school_id']));
         }
 
         return;
