@@ -111,11 +111,20 @@ var SE = { // School Explorer
 		var marker = new google.maps.Marker({
 			position: new google.maps.LatLng(school["lat"].value, school["long"].value),
 			map: SE.G.smap,
-			//icon: mImage,
+			//icon: mImage, // TODO: color dependent on religion + gender
 			title: school["label"].value
-		});		
-		// google.maps.event.addListener(marker, "click", function() {
-		// });
+		});
+		
+		google.maps.event.addListener(marker, "click", function() {
+			SE.addSchoolInfo(marker, school);
+		});
+	},
+	
+	addSchoolInfo: function(marker, school){
+		var infowindow = new google.maps.InfoWindow({
+		    content: school["label"].value + " " + school["address1"].value + " " + school["address2"].value
+		});
+		infowindow.open(SE.G.smap, marker);
 	}
 	
 		
