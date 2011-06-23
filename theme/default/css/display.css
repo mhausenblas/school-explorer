@@ -98,6 +98,39 @@ background-color:#FFFFCC;
 border-color:#AAAAAA;
 }
 
+#school_map {
+margin: 1em;
+height: 500px;
+}
+
+#school_legend {
+display: none;
+width: 500px;
+text-align: left;
+margin: 1em;
+}
+
+#school_legend div{
+cursor: pointer;
+text-align: center;
+font-size: 80%;
+padding: 2px; 
+color: #0f0f0f;
+box-shadow: 4px 4px 4px rgba(100, 100, 100, 0.2);
+}
+
+#school_legend h2{
+margin: .1em;
+font-size: 90%;
+}
+
+.sublegend{
+float: left;
+margin: .2em;
+padding: .1em;
+}
+
+
 #dynam {
 display: none;
 }

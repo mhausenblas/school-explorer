@@ -11,21 +11,49 @@
 var SE = { // School Explorer
 	
 	C : { // constant SE-wide values
-		NEAR_API_BASE : "near?center=", //such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
+		DEBUG : true,
+		
+		NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
+		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		
 		DEFAULT_ZOOM_FACTOR : 13, // the default zoom factor on map init ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
-		MAP_ELEMENT_ID : "school_map", // the @id of the map, such as in <div id='school_map'></div>
-		DETAILS_ELEMENT_ID : "school_details", // the @id of the details, such as in <div id='school_details'></div>
-		CONTAINER_ELEMENT_ID : "content", // the @id of the map and details container, such as in <div id='content'>...</div>
+
+		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend, such as in <div id='school_legend'></div>
+		MAP_ELEMENT_ID : "school_map", // the @id of the map
+		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
+		CONTAINER_ELEMENT_ID : "content", // the @id of the map and details container
 		ADDRESS_FIELD_ID : "address", // the @id of the address input field
+		RELIGION_FIELD_ID : "religion", // the @id of the religion input field
+		GENDER_FIELD_ID : "gender", // the @id of the gender input field
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
-		MARKER_DYNAM_ID : "dynam" // the @id of the canvas we draw the dynamic markers in
+		MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
 	},
 	
 	G : { // SE-wide values
 		smap : undefined, // the google.maps.Map object
-		smapWidth : 0.9, // the preferred width of the map
-		smapHeight : 2, // the preferred height of the map
+		smapWidth : 0.75, // the preferred width of the map
+		smapHeight : 1, // the preferred height of the map
+		genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
+		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' }
+	},
+	
+	
+	go : function(){
+		SE.initLegend();
+		SE.handleInteraction();
+	},
+	
+	initLegend : function(){
+		var buf = ["<div class='sublegend'><h2>Gender</h2>"];
+		$.each(SE.G.genderCCodes, function(index, val){
+			buf.push("<div style='background:" + SE.G.genderCCodes[index] +";'>" + index + "</div>");	
+		});
+		buf.push("</div><div class='sublegend'><h2>Religion</h2>");
+		$.each(SE.G.religionCCodes, function(index, val){
+			buf.push("<div style='background:" + SE.G.religionCCodes[index] +";'>" + index + "</div>");	
+		});
+		buf.push("</div>");
+		$('#' + SE.C.LEGEND_ELEMENT_ID).html(buf.join(""));
 	},
 	
 	handleInteraction : function(){
@@ -47,15 +75,25 @@ var SE = { // School Explorer
 				SE.showSchools();
 			}
 		});
+		
+		//TODO: filter based on religion and/or gender
+		
 	},
 	
 	showSchools  : function() {
 		var a = $('#' + SE.C.ADDRESS_FIELD_ID).val();
+		var r = $('#' + SE.C.RELIGION_FIELD_ID).val();
+		var g = $('#' + SE.C.GENDER_FIELD_ID).val();
+		
+		$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow");// show the legend
+		
 		SE.position2Address(a, function(lat, lng){
-			console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
-						
+			if(SE.C.DEBUG){
+				console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
+				console.log("You asked for: religion: [" + r + "] and gender: [" + g + "]");				
+			}
 			// now, get the schools around this address
-			$.getJSON(SE.C.NEAR_API_BASE + lat + "," + lng, function(data, textStatus){
+			$.getJSON(SE.buildNearSchoolsURI(lat, lng, r, g), function(data, textStatus){
 				if(data) {
 					var b = "";
 					var rows = data.data;
@@ -75,6 +113,11 @@ var SE = { // School Explorer
 				}
 			});
 		});
+	},
+	
+	// for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
+	buildNearSchoolsURI : function(lat, lng, religion, gender){
+		return (religion == "") ? SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + gender : SE.C.NEAR_API_BASE + lat + "," + lng + "&religion=" + religion + "&gender=" + gender;
 	},
 	
 	position2Address : function(address, callback){
@@ -118,7 +161,7 @@ var SE = { // School Explorer
 		
 		// make map fit in the container
 		$('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
-		$('#' + SE.C.MAP_ELEMENT_ID).height($('#' + SE.C.CONTAINER_ELEMENT_ID).height() * SE.G.smapHeight);
+		// $('#' + SE.C.MAP_ELEMENT_ID).height($('#' + SE.C.CONTAINER_ELEMENT_ID).height() * SE.G.smapHeight);
 	},
 	
 	addSchoolMarker : function(school){
@@ -139,8 +182,7 @@ var SE = { // School Explorer
 		    content: SE.renderSchool(school)
 		});
 		infowindow.open(SE.G.smap, marker);
-	},
-	
+	},	
 	
 	renderSchool : function(school){
 		var buf = ["<div class='school_info'>"];
@@ -150,7 +192,7 @@ var SE = { // School Explorer
 		buf.push("</div>");
 		return buf.join("");
 	},
-	
+		
 	drawMarker : function(name, religion, gender){
 		// see also http://www.html5canvastutorials.com/
 		var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
@@ -208,12 +250,14 @@ var SE = { // School Explorer
 	},
 	
 	getGenderCoding : function(gender){
+		//TODO: replace with globals
 		if(gender.indexOf('Boys') > 0) return '#11f'; // boys-only is blue
 		if(gender.indexOf('Girls') > 0) return '#f6f'; // girls-only is pink
 		return '#fff'; // mixed is white
 	},
 	
 	getReligionCoding : function(religion){
+		//TODO: replace with globals
 		if(religion.indexOf('Catholic') > 0) return '#ff3'; // catholic is yellow
 		return '#fff'; // all others are white
 	}
@@ -223,7 +267,7 @@ var SE = { // School Explorer
 
 $(document).ready(function(){
 	if ($("#form_search")) {
-		SE.handleInteraction();
+		SE.go();
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
 	}
 });
