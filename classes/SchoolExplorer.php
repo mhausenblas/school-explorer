@@ -387,7 +387,7 @@ EOD;
             ?school
                 rdfs:label ?label ;
                 sch-ont:gender [ skos:prefLabel ?gender ] ;
-                sch-ont:region ?region ;
+                sch-ont:region [ rdfs:label ?region ] ;
                 sch-ont:religiousCharacter [ skos:prefLabel ?religion ] ;
             OPTIONAL {
                 ?school
