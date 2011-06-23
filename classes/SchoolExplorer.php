@@ -380,15 +380,23 @@ EOD;
         $gender = $this->getGender($apiElementKeyValue);
 
         $schoolGraph = <<<EOD
-            ?school a sch-ont:School .
+            ?school
+                a sch-ont:School ;
+                rdfs:label ?label .
+
             OPTIONAL { ?school sch-ont:address [ sch-ont:address1 ?address1 ] . }
             OPTIONAL { ?school sch-ont:address [ sch-ont:address2 ?address2 ] . }
             OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
-            ?school
-                rdfs:label ?label ;
-                sch-ont:gender [ skos:prefLabel ?gender ] ;
-                sch-ont:region [ rdfs:label ?region ] ;
-                sch-ont:religiousCharacter [ skos:prefLabel ?religion ] ;
+
+            OPTIONAL { ?school sch-ont:region [ rdfs:label ?region ] . }
+            OPTIONAL { ?school sch-ont:region ?region . }
+
+            OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender ] . }
+            OPTIONAL { ?school sch-ont:gender ?gender . }
+
+            OPTIONAL { ?school sch-ont:religiousCharacter [ skos:prefLabel ?religion ] . }
+            OPTIONAL { ?school sch-ont:religiousCharacter ?religion . }
+
             OPTIONAL {
                 ?school
                     wgs:lat ?lat ;
@@ -403,7 +411,7 @@ EOD;
                 $religionGraph = '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .';
             }
             else {
-                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->getPrefix('sch-ont').'ReligiousCharacter_'.$religion.'> .';
+                $religionGraph = '?school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_'.$religion.' .';
             }
         }
 
