@@ -386,7 +386,7 @@ EOD;
             OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
             ?school
                 rdfs:label ?label ;
-                sch-ont:gender ?gender ;
+                sch-ont:gender [ skos:prefLabel ?gender ] ;
                 sch-ont:region ?region ;
                 sch-ont:religiousCharacter ?religion ;
             OPTIONAL {
