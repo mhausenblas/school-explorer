@@ -254,18 +254,15 @@ EOD;
     {
         //XXX: Yea, I'm not sure about this. Revisit.
         $this->config['religions'] = array(
-            'Inter-___non-_denominational' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
-            'Methodist' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
-            'Quaker' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
-            'Jewish' => 'http://education.data.gov.uk/ontology/school#ReligiousCharacter_',
-            'Catholic' => 'http://data-gov.ie/ReligiousCharacter/',
+            'Catholic'          => 'http://data-gov.ie/ReligiousCharacter/',
             'Church_of_Ireland' => 'http://data-gov.ie/ReligiousCharacter/'
         );
 
+        $schOnt = $this->getPrefix('sch-ont');
         $this->config['genders'] = array(
-            'Gender_Mixed' => $this->getPrefix('sch-ont'),
-            'Gender_Girls' => $this->getPrefix('sch-ont'),
-            'Gender_Boys' => $this->getPrefix('sch-ont')
+            'Gender_Mixed' => $schOnt,
+            'Gender_Girls' => $schOnt,
+            'Gender_Boys'  => $schOnt
         );
     }
 
@@ -400,7 +397,15 @@ EOD;
 
 EOD;
 
-        $religionGraph = (!empty($religion) && array_key_exists($religion, $this->config['religions'])) ? '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .' : '';
+        $religionGraph = '';
+        if (!empty($religion)) {
+            if (array_key_exists($religion, $this->config['religions'])) {
+                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .';
+            }
+            else {
+                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->getPrefix('sch-ont').'ReligiousCharacter_'.$religion.'> .';
+            }
+        }
 
         $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? '?school sch-ont:gender <'.$this->config['genders'][$gender].$gender.'> .' : '';
 
