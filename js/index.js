@@ -34,11 +34,13 @@ var SE = { // School Explorer
 		smapWidth : 0.75, // the preferred width of the map
 		smapHeight : 1, // the preferred height of the map
 		genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
-		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' }
+		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' },
+		chartAPI : undefined, // the jgcharts object http://www.maxb.net/scripts/jgcharts
 	},
 	
 	
 	go : function(){
+		SE.G.chartAPI = new jGCharts.Api(); 
 		SE.initLegend();
 		SE.handleInteraction();
 	},
@@ -174,6 +176,7 @@ var SE = { // School Explorer
 		
 		google.maps.event.addListener(marker, "click", function() {
 			SE.addSchoolInfo(marker, school);
+			SE.renderSchoolEnrolment(school["school"].value);
 		});
 	},
 	
@@ -260,8 +263,46 @@ var SE = { // School Explorer
 		//TODO: replace with globals
 		if(religion.indexOf('Catholic') > 0) return '#ff3'; // catholic is yellow
 		return '#fff'; // all others are white
-	}
+	},
 	
+	renderSchoolEnrolment : function(schoolID){
+
+		var data = [];
+		
+		// fill the chart's data via API
+		$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) {
+			$.each(data.data, function(i, grade){
+				// data.setValue(i, 0, grade.schoolGrade.value.substring(grade.schoolGrade.value.lastIndexOf("/")+1));
+				// data.setValue(i, 1, parseInt(grade.numberOfStudents.value));
+			});
+		});
+		// // draw chart
+		// chart = new google.visualization.ColumnChart($('#' + SE.C.DETAILS_ELEMENT_ID));
+		// chart.draw(data, {
+		// 	width: 500, 
+		// 	height: 240, 
+		// 	title: 'School grades distribution',
+		// 	hAxis: {title: 'School Grades', titleTextStyle: {color: '#606060'}},
+		// 	vAxis: {title: 'No. of Students', titleTextStyle: {color: '#606060'}}
+		// });
+		
+		$('#' + SE.C.DETAILS_ELEMENT_ID).html($('<img>')
+		.attr('src', SE.G.chartAPI.make({ 
+			data : [[153, 60, 52], [113, 70, 60], [120, 80, 40]],  
+			legend      : ['Data 1','Data 2','Data 3'], 
+			axis_labels : ['2001','2002','2003'], 
+			size        : '400x250', 
+			type        : 'bvg', 
+			colors      : ['4b9b41','81419b','41599b'], 
+			bar_width   : 20, 
+			bar_spacing : 5, 
+			bg          : 'ffffff', 
+			bg_type     : 'stripes', 
+			bg_angle    : 90, 
+			bg_offset   : 'f0f0f0', 
+			bg_width    : 10, 
+		})));
+	}
 
 };
 
