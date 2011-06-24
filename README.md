@@ -37,7 +37,7 @@ Information about the school
 
 Example:
 
-	http://school-explorer/info?school_name=Loreto Secondary School
+	http://school-explorer/info?school_id=school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K&school_name=Loreto Secondary School
 
 ### Enrolment
 Get enrolment data for schools
@@ -52,7 +52,7 @@ Enrolment information for school URI provided
 
 Example:
 
-http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+    http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 
 
 
