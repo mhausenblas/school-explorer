@@ -29,7 +29,7 @@ Example:
 Get information about a school:
 
 Input:
-	info?school_name=name
+	info?school_id=schoolURI&school_name=name (expecting schoolURI to be urlencoded; either school_id or school_name is used, if both provided, school_id is used)
 	
 Output:
 
