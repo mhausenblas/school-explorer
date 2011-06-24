@@ -55,6 +55,18 @@ Example:
     http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 
 
+### Age groups
+Get upcoming age groups in school's area
+
+Input
+    agegroups?school_id=schoolURI (expecting schoolURI to be urlencoded)
+
+Output
+Population for given area broken down for ages 0 to 5.
+
+Example
+    http://school-explorer/agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
+
 
 ## License
 

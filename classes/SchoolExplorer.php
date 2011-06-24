@@ -39,7 +39,7 @@ class SchoolExplorer
                 require_once 'templates/page.map.html';
                 break;
 
-            case 'near': case 'info': case 'enrolment':
+            case 'near': case 'info': case 'enrolment': case 'agegroups':
                 $this->sendAPIResponse();
                 break;
 
@@ -285,7 +285,8 @@ EOD;
         $this->config['apiElements'] = array(
             'info' => array('school_id', 'school_name'),
             'near' => array('center', 'religion', 'gender'), //How about we use en-uk's "centre"?
-            'enrolment' => array('school_id')
+            'enrolment' => array('school_id'),
+            'agegroups' => array('school_id')
         );
     }
 
@@ -503,6 +504,36 @@ EOD;
 
                             $enrolmentGraph
                         }
+
+EOD;
+                    $uri = $this->buildQueryURI($query);
+
+                    return $this->curlRequest($uri);
+                }
+                else {
+                    $this->returnError('missing');
+                }
+                break;
+
+            case 'agegroups':
+                if (!empty($schoolId)) {
+                    $query = <<<EOD
+                        SELECT ?age ?age_label ?population
+                        WHERE {
+                        <$schoolId>
+                            a sch-ont:School ;
+                            dcterms:isPartOf ?geoArea .
+                        ?observation
+                            qb:dataSet <http://stats.data-gov.ie/data/persons-by-gender-and-age> ;
+                            sdmx-dimension:sex sdmx-code:sex-T ;
+                            a qb:Observation ;
+                            property:age1 ?age ;
+                            property:geoArea ?geoArea .
+                        ?age skos:notation ?age_label .
+                        FILTER (?age_label = "0" || ?age_label = "1" || ?age_label = "2" || ?age_label = "3" || ?age_label = "4" || ?age_label = "5")
+                        ?observation property:population ?population .
+                        }
+                        ORDER BY ?age
 
 EOD;
                     $uri = $this->buildQueryURI($query);
