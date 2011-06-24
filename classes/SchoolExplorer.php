@@ -388,13 +388,13 @@ EOD;
             OPTIONAL { ?school sch-ont:address [ sch-ont:address2 ?address2 ] . }
             OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
 
-            OPTIONAL { ?school sch-ont:region [ rdfs:label ?region ] . }
+            OPTIONAL { ?school sch-ont:region [ rdfs:label ?region_label ] . }
             OPTIONAL { ?school sch-ont:region ?region . }
 
-            OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender ] . }
+            OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
             OPTIONAL { ?school sch-ont:gender ?gender . }
 
-            OPTIONAL { ?school sch-ont:religiousCharacter [ skos:prefLabel ?religion ] . }
+            OPTIONAL { ?school sch-ont:religiousCharacter [ skos:prefLabel ?religion_label ] . }
             OPTIONAL { ?school sch-ont:religiousCharacter ?religion . }
 
             OPTIONAL {
@@ -434,7 +434,7 @@ EOD;
             case 'info':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long
                         WHERE {
                             $schoolGraph
                             FILTER (<$schoolId> = ?school)
@@ -447,7 +447,7 @@ EOD;
                 }
                 else if (!empty($schoolName)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long
                         WHERE {
                             $schoolGraph
                             FILTER ("$schoolName" = str(?label))
@@ -470,7 +470,7 @@ EOD;
             case 'near':
                 if (count($location) >= 2) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?region ?religion ?lat ?long ?distance
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?distance
                         WHERE {
                             $schoolGraph
                             $religionGraph
