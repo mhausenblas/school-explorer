@@ -59,3 +59,17 @@ http://school-explorer/enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F6
 ## License
 
 This software is Public Domain.
+
+
+## TODO
+
+### API
+Determine remaining API components and implement them:
+Upcoming age groups
+Demographics for school's area
+
+### Data
+Finalize dataset for school
+
+### Server
+Setup to include Apache, Fuseki, Lucene (LARQ)
