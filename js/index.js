@@ -15,6 +15,7 @@ var SE = { // School Explorer
 		
 		NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
 		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+		INFO_API_BASE : "info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		
 		DEFAULT_ZOOM_FACTOR : 13, // the default zoom factor on map init ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
 
@@ -35,12 +36,14 @@ var SE = { // School Explorer
 		smapHeight : 1, // the preferred height of the map
 		genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
 		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' },
+		iwlist : {}, // associative array (school ID -> info window)*
 		chartAPI : undefined, // the jgcharts object http://www.maxb.net/scripts/jgcharts
 	},
 	
 	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
+		$("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
 		SE.initLegend();
 		SE.handleInteraction();
 	},
@@ -59,6 +62,12 @@ var SE = { // School Explorer
 	},
 	
 	handleInteraction : function(){
+		// on window resize, fit map
+		$(window).resize(function() { 
+			$('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
+		});
+		
+		
 		// the search button has been hit, show nearby schools
 		$('#' + SE.C.FINDSCHOOL_BTN_ID).click(function(){
 			SE.showSchools();
@@ -160,10 +169,8 @@ var SE = { // School Explorer
 			title: $('#' + SE.C.ADDRESS_FIELD_ID).val() + " (home)"
 		});
 		
-		
 		// make map fit in the container
 		$('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
-		// $('#' + SE.C.MAP_ELEMENT_ID).height($('#' + SE.C.CONTAINER_ELEMENT_ID).height() * SE.G.smapHeight);
 	},
 	
 	addSchoolMarker : function(school){
@@ -175,25 +182,30 @@ var SE = { // School Explorer
 		});
 		
 		google.maps.event.addListener(marker, "click", function() {
-			SE.addSchoolInfo(marker, school);
-			SE.renderSchoolEnrolment(school["school"].value);
+			SE.renderSchool(school, function(iwcontent){
+				SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(marker, iwcontent); // remember info windows indexed by school ID
+			});
 		});
 	},
 	
-	addSchoolInfo : function(marker, school){
+	renderSchool : function(school, callback){
+		var buf = ["<div class='school_info'>"];
+		var reli = school["religion"].value;
+		buf.push("<h2>" + school["label"].value + "</h2>");
+		buf.push("<div class='summary'>");
+		buf.push("<span class='head'>Address:</span> " + school["address1"].value + " " + school["address2"].value + ", " + school["region"].value + " | ");
+		buf.push("<span class='head'>Religion:</span> " + reli.substring(reli.lastIndexOf('/') + 1).toLowerCase() + " | ");
+		buf.push("<span class='head'>Gender:</span> " + school["gender"].value);
+		buf.push("</div>"); // EO summary
+		SE.renderSchoolEnrolment(school["school"].value, buf, callback); // render the enrollment stats
+	},
+	
+	addSchoolInfo : function(marker, iwcontent){
 		var infowindow = new google.maps.InfoWindow({
-		    content: SE.renderSchool(school)
+		    content: iwcontent
 		});
 		infowindow.open(SE.G.smap, marker);
-	},	
-	
-	renderSchool : function(school){
-		var buf = ["<div class='school_info'>"];
-		buf.push("<h2>" + school["label"].value + " " + school["address1"].value + " " + school["address2"].value + "</h2>");
-		buf.push("<hr />");
-		buf.push("<a href='" +school["region"].value + "' target='_new'>region</a> | <a href='" + school["school"].value + "' target='_new'>more ...</a>" );
-		buf.push("</div>");
-		return buf.join("");
+		return infowindow;
 	},
 		
 	drawMarker : function(name, religion, gender){
@@ -265,50 +277,47 @@ var SE = { // School Explorer
 		return '#fff'; // all others are white
 	},
 	
-	renderSchoolEnrolment : function(schoolID){
-
-		var data = [];
+	renderSchoolEnrolment : function(schoolID, buf, callback){
+		buf.push("<div class='enrolment'><h3>Enrolment</h3>");
+		var xdata = [], ydata = [];
 		
 		// fill the chart's data via API
 		$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) {
 			$.each(data.data, function(i, grade){
-				// data.setValue(i, 0, grade.schoolGrade.value.substring(grade.schoolGrade.value.lastIndexOf("/")+1));
-				// data.setValue(i, 1, parseInt(grade.numberOfStudents.value));
+				xdata.push(SE.cleangrades(grade.schoolGrade.value)); // TODO: replace w/ label once API offers it
+				ydata.push(parseInt(grade.numberOfStudents.value));
 			});
+			if(SE.C.DEBUG){
+				console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
+			}
+			buf.push($('<div>').html($('<img>').attr('src', SE.G.chartAPI.make({ 
+				data : ydata,  
+				legend : ['no. children'], 
+				axis_labels : xdata, 
+				size : '400x200', 
+				bar_width : 30,
+				type : 'bvg', 
+				colors : ['009933']
+			}))).html());
+			buf.push("</div>"); // EO enrolment
+			buf.push("</div>"); // EO school_info 
+			callback(buf.join(""));
 		});
-		// // draw chart
-		// chart = new google.visualization.ColumnChart($('#' + SE.C.DETAILS_ELEMENT_ID));
-		// chart.draw(data, {
-		// 	width: 500, 
-		// 	height: 240, 
-		// 	title: 'School grades distribution',
-		// 	hAxis: {title: 'School Grades', titleTextStyle: {color: '#606060'}},
-		// 	vAxis: {title: 'No. of Students', titleTextStyle: {color: '#606060'}}
-		// });
-		
-		$('#' + SE.C.DETAILS_ELEMENT_ID).html($('<img>')
-		.attr('src', SE.G.chartAPI.make({ 
-			data : [[153, 60, 52], [113, 70, 60], [120, 80, 40]],  
-			legend      : ['Data 1','Data 2','Data 3'], 
-			axis_labels : ['2001','2002','2003'], 
-			size        : '400x250', 
-			type        : 'bvg', 
-			colors      : ['4b9b41','81419b','41599b'], 
-			bar_width   : 20, 
-			bar_spacing : 5, 
-			bg          : 'ffffff', 
-			bg_type     : 'stripes', 
-			bg_angle    : 90, 
-			bg_offset   : 'f0f0f0', 
-			bg_width    : 10, 
-		})));
+	},
+	
+	cleangrades : function(grade) {
+		grade = grade.substring(grade.lastIndexOf("/"));
+		if(grade.indexOf('FirstYear') > 0) return "1st";
+		if(grade.indexOf('SecondYear') > 0) return "2nd";
+		if(grade.indexOf('ThirdYear') > 0) return "3rd";
+		if(grade.indexOf('All_Excluding_TY') > 0) return "other";
 	}
-
 };
 
 $(document).ready(function(){
 	if ($("#form_search")) {
 		SE.go();
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
+		//$('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
 	}
 });
