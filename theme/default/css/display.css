@@ -25,6 +25,10 @@ caption, dt {
 text-shadow:1px 1px 1px #CCCCCC;
 }
 
+h1{
+margin-bottom: .5em;	
+}
+
 tr {
 border-color:#EEEEEE;
 }
@@ -98,16 +102,25 @@ background-color:#FFFFCC;
 border-color:#AAAAAA;
 }
 
+
+/* Michael's additions :*/
+
+#school_results{
+padding: 0;
+}
+
 #school_map {
-margin: 1em;
+margin: 0;
 height: 500px;
 }
 
 #school_legend {
 display: none;
-width: 500px;
 text-align: left;
-margin: 1em;
+margin: 0 2px 0 0;
+float: left;
+padding: 0;
+width: 70px;
 }
 
 #school_legend div{
@@ -116,7 +129,7 @@ text-align: center;
 font-size: 80%;
 padding: 2px; 
 color: #0f0f0f;
-box-shadow: 4px 4px 4px rgba(100, 100, 100, 0.2);
+box-shadow: 2px 2px 6px 2px rgba(10, 10, 10, 0.1)
 }
 
 #school_legend h2{
@@ -125,20 +138,31 @@ font-size: 90%;
 }
 
 .sublegend{
-float: left;
-margin: .2em;
+margin: 0 0 10px 0;
 padding: .1em;
 }
 
+.school_lst{
+font-size: 65%;
+float: left;
+margin: 1em;
+padding: 2px 19px 1px 0;
+width: 150px;
+box-shadow: 1px 1px 1px rgba(200, 200, 200, 0.4);
+}
+
+.school_lst img {
+float: left; 
+margin: 0 10px;
+}
 
 #dynam {
 display: none;
 }
 
 .school_info {
-padding: .3em;
-height: 400px;
-width: 600px;
+padding:0;
+height: 280px;
 }
 
 .school_info h2 {
@@ -157,8 +181,29 @@ border-bottom: 1px solid #c0c0c0;
 color: #909090;
 }
 
-.school_info .enrolment {
-padding: .2em;
-width: 400px;
+.school_info .enrolment,.agegroups {
+margin: 10px 0 0 0;
+padding: 2px;
+float: left;
+font-size: 80%;
 }
+
+.school_more {
+margin: 10px 0 0 0;
+clear: left;
+font-size: 9pt;
+cursor: pointer;
+}
+
+.hidden {
+display: none;	
+}
+
+#show_more_schools{
+margin: 5px 0 0 10px;
+font-size: 9pt;
+cursor: pointer;
+color:#0000E4;
+}
+
 } /*end of @media screen, projection, tv*/
