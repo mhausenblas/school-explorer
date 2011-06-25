@@ -525,12 +525,11 @@ EOD;
                             dcterms:isPartOf ?geoArea .
                         ?observation
                             qb:dataSet <http://stats.data-gov.ie/data/persons-by-gender-and-age> ;
+                            property:geoArea ?geoArea ;
                             sdmx-dimension:sex sdmx-code:sex-T ;
-                            a qb:Observation ;
-                            property:age1 ?age ;
-                            property:geoArea ?geoArea .
+                            property:age1 ?age .
                         ?age skos:notation ?age_label .
-                        FILTER (?age_label = "0" || ?age_label = "1" || ?age_label = "2" || ?age_label = "3" || ?age_label = "4" || ?age_label = "5")
+                        FILTER (xsd:integer(?age_label) >= 0 && xsd:integer(?age_label) <= 5)
                         ?observation property:population ?population .
                         }
                         ORDER BY ?age
