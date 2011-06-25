@@ -254,8 +254,8 @@ EOD;
     {
         //XXX: Yea, I'm not sure about this. Revisit.
         $this->config['religions'] = array(
-            'Catholic'          => 'http://data-gov.ie/ReligiousCharacter/',
-            'Church_of_Ireland' => 'http://data-gov.ie/ReligiousCharacter/'
+            'Catholic'          => 'http://data-gov.ie/school-religion/catholic',
+            'Church_of_Ireland' => 'http://data-gov.ie/school-religion/church-of-ireland'
         );
 
         $schOnt = $this->getPrefix('sch-ont');
@@ -395,7 +395,7 @@ EOD;
             OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
             OPTIONAL { ?school sch-ont:gender ?gender . }
 
-            OPTIONAL { ?school sch-ont:religiousCharacter [ skos:prefLabel ?religion_label ] . }
+            OPTIONAL { ?school sch-ont:religiousCharacter [ rdfs:label ?religion_label ] . }
             OPTIONAL { ?school sch-ont:religiousCharacter ?religion . }
 
             OPTIONAL {
@@ -409,7 +409,7 @@ EOD;
         $religionGraph = '';
         if (!empty($religion)) {
             if (array_key_exists($religion, $this->config['religions'])) {
-                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].$religion.'> .';
+                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].'> .';
             }
             else {
                 $religionGraph = '?school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_'.$religion.' .';
