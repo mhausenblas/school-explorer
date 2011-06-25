@@ -18,19 +18,21 @@ var SE = { // School Explorer
 		AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
 		INFO_API_BASE : "info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 
-		DEFAULT_ZOOM_FACTOR : 13, // the default zoom factor on map init ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
 		MAX_SCHOOL_LISTING : 10, // determines how many schools are rendered below the map
+		MAP_TYPE : google.maps.MapTypeId.ROADMAP, // the type of the map, see http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeId
 
-		RESULT_ELEMENT_ID : "school_results", // the @id of the legend, such as in <div id='school_results'></div>
+		CONTAINER_ELEMENT_ID : "content", // the @id of the map and details container
+		RESULT_ELEMENT_ID : "school_results", // the @id of the legend
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
-		CONTAINER_ELEMENT_ID : "content", // the @id of the map and details container
+		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
 		ADDRESS_FIELD_ID : "address", // the @id of the address input field
 		RELIGION_FIELD_ID : "religion", // the @id of the religion input field
 		GENDER_FIELD_ID : "gender", // the @id of the gender input field
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
 		SHOW_MORE_SCHOOLS : "show_more_schools", // the @id of the 'show more schools' element
+		STOP_BOUNCE : "stop_bounce", // the @id of the 'show more schools' element
 		
 		MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
 	},
@@ -39,10 +41,12 @@ var SE = { // School Explorer
 		smap : null, // the google.maps.Map object
 		smapWidth : 0.9, // the preferred width of the map
 		smapHeight : 1, // the preferred height of the map
-		selectedZoomFactor : 13, // keeps track of the currently selected zoom factor
+		selectedZoomFactor : 11, // keeps track of the selected zoom factor ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
 		genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
 		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' },
-		iwlist : {}, // associative array (school ID -> info window)*
+		mlist : {}, // 'associative' array (school ID -> marker)*
+		iwlist : {}, // 'associative' array (school ID -> info window)*
+		vlist : [], //  array of 'visited' schools (schoolID)*
 		chartAPI : null, // the jgcharts object http://www.maxb.net/scripts/jgcharts
 	},
 	
@@ -100,8 +104,36 @@ var SE = { // School Explorer
 			$(this).html("");
 		});
 		
-		//TODO: filter based on religion and/or gender
+		// expand school listing item at click and let the associated marker bounce 
+		$('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function(){
+			var schoolID = $(this).attr('about');
+			var el =  $(this);
+			// stop bouncing of all markers and start bouncing of associated marker:
+			$.each(SE.G.mlist, function(sID, marker){
+ 				marker.setAnimation(null);
+    		});
+			SE.G.mlist[schoolID].setAnimation(google.maps.Animation.BOUNCE);
+			
+			if($.inArray(schoolID, SE.G.vlist) < 0 ) { // not yet visited
+				// get school's enrolments:
+				$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { 
+					var total = 0;
+					$.each(data.data, function(i, grade){
+						total = total + parseInt(grade.numberOfStudents.value);
+					});
+					el.append("<div>" + total + " pupils</div>");
+					SE.G.vlist.push(schoolID); // mark school visited
+				});
+			}
+		});
+		// reset animated marker
+		$('#' + SE.C.STOP_BOUNCE).live('click', function(){
+			$.each(SE.G.mlist, function(sID, marker){
+ 				marker.setAnimation(null);
+    		});
+		});
 		
+		//TODO: fix issue with re-opening info window - seems that ATM a info window can only be opend once (reset iwlist[] maybe?)
 	},
 	
 	showSchools  : function() {
@@ -114,7 +146,7 @@ var SE = { // School Explorer
  		SE.position2Address(a, function(lat, lng){ // get the location from address and show the 'nearby' schools
 			if(SE.C.DEBUG){
 				console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
-				console.log("You asked for: religion: [" + r + "] and gender: [" + g + "]");				
+				console.log("You asked for: religion: [" + r + "] and gender: [" + g + "]");
 			}
 			
 			// now, get the schools around this address
@@ -128,12 +160,14 @@ var SE = { // School Explorer
 					
 					// create the map centered on the location of the address
 					SE.initMap(lat, lng);
+					
+					buf.push("<div id='ctrl'><span id='stop_bounce'>Reset animation ...</span><span id='show_more_schools'>More schools ...</span></div>");
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
 						
 						if(i < SE.C.MAX_SCHOOL_LISTING) {
-							buf.push("<div class='school_lst'>");
+							buf.push("<div class='school_lst' about='"+row["school"].value+ "'>");
 							buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/><a href='" + row["school"].value + "'>" + row["label"].value + "</a>");
 							buf.push("</div>");
 						}
@@ -144,7 +178,6 @@ var SE = { // School Explorer
 						}
 						SE.addSchoolMarker(row, schoolSymbol);
 					}
-					buf.push("<div id='show_more_schools'>More ...</div>");
 					$('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
 					// $('#' + SE.C.RESULT_ELEMENT_ID).prepend("<h2>Details</h2>");
 				}
@@ -174,11 +207,11 @@ var SE = { // School Explorer
 		});
 	},
 	
-	initMap : function(mapCenterLat, mapCenterLng) {		
+	initMap : function(mapCenterLat, mapCenterLng) {
 		var mapOptions = { 
 			zoom: SE.G.selectedZoomFactor,
 			center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
-			mapTypeId: google.maps.MapTypeId.HYBRID,
+			mapTypeId: SE.C.MAP_TYPE,
 			overviewMapControl: true,
 			overviewMapControlOptions: {
 				position: google.maps.ControlPosition.BOTTOM_RIGHT,
@@ -195,8 +228,9 @@ var SE = { // School Explorer
 			title: $('#' + SE.C.ADDRESS_FIELD_ID).val() + " (home)"
 		});
 		
-		// make map fit in the container
+		// make map fit in the container and set in focus
 		$('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
+		$.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
 	},
 	
 	addSchoolMarker : function(school, schoolSymbol){
@@ -207,6 +241,7 @@ var SE = { // School Explorer
 			title: school["label"].value
 		});
 		
+		SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
 		google.maps.event.addListener(marker, "click", function() {
 			SE.renderSchool(school, function(iwcontent){
 				SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
@@ -301,27 +336,27 @@ var SE = { // School Explorer
 	},
 	
 	getGenderCoding : function(gender){
-		//TODO: replace with globals
-		if(gender.indexOf('Boys') > 0) return '#11f'; // boys-only is blue
-		if(gender.indexOf('Girls') > 0) return '#f6f'; // girls-only is pink
-		return '#fff'; // mixed is white
+		if(gender.indexOf('Boys') > 0) return SE.G.genderCCodes['boys'];
+		if(gender.indexOf('Girls') > 0) return SE.G.genderCCodes['girls'];
+		return SE.G.genderCCodes['mixed'];
 	},
 	
 	getReligionCoding : function(religion){
-		//TODO: replace with globals
-		if(religion.indexOf('catholic') > 0) return '#ff3'; // catholic is yellow
-		return '#fff'; // all others are white
+		if(religion.indexOf('catholic') > 0) return SE.G.religionCCodes['catholic']; // catholic is yellow
+		return SE.G.religionCCodes['others']; // all others are white
 	},
 	
 	renderStats : function(schoolID, buf, callback){
 		buf.push("<div class='enrolment'>");
 		var xdata = [], ydata = [];
+		var total = 0;
 		
 		// fill the chart's data via API
 		$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
 			$.each(data.data, function(i, grade){
 				xdata.push(SE.cleangrades(grade.schoolGrade.value)); // TODO: replace w/ label once API offers it
 				ydata.push(parseInt(grade.numberOfStudents.value));
+				total = total + parseInt(grade.numberOfStudents.value);
 			});
 			if(SE.C.DEBUG){
 				console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
@@ -337,7 +372,7 @@ var SE = { // School Explorer
 				type : 'bvg', 
 				colors : ['009933']
 			}))).html());
-			buf.push("</div>"); // EO enrolment
+			buf.push("Total: " +  total + " pupils</div>"); // EO enrolment
 			
 			callback(buf.join("")); // immediatly render what we have so far 
 			
