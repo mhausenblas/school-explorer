@@ -86,7 +86,7 @@ Using the [LGD API](http://linkedgeodata.org/OnlineAccess/RestApi?v=klu "linkedg
 	
 pass through:
 
-INPUT: 'lgd_lookup?center=lat,lng&radius=r' 
+INPUT: lgd_lookup?center=lat,long&radius=r (r is in meters, if no radius, defaults to 1000)
 
 OUTPUT:
 
@@ -110,7 +110,7 @@ OUTPUT:
 			}
 		}
 		
-EXAMPLE: lgd_lookup?center=53.7724,-7.1632&radius=1000
+EXAMPLE: lgd_lookup?center=53.274795076024,-9.0540373672574&radius=1000
 
 #### Enrolment API 
 
