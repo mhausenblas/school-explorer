@@ -77,8 +77,44 @@ This software is Public Domain.
 
 ### API
 Determine remaining API components and implement them:
+ 
+#### LinkedGeoData API
 
- * provide `schoolGrade_label` in enrolment?school_id and sort it by grade
+Using the [LGD API](http://linkedgeodata.org/OnlineAccess/RestApi?v=klu "linkedgeodata.org : Online&nbsp;Access&nbsp;/&nbsp;Rest&nbsp;Api") such as:
+
+	http://linkedgeodata.org/data/near/53.7724,-7.1632/1000
+	
+pass through:
+
+INPUT: 'lgd_lookup?center=lat,lng&radius=r' 
+
+OUTPUT:
+
+	data: [
+		{
+			poi: {
+				type: "uri"
+				value: http://linkedgeodata.org/triplify/node268767536
+			}
+			poi_label: {
+				type: "typed-literal"
+				value: "National University of Ireland, Galway"
+			}
+			poi_type: {
+				type: "uri"
+				value: http://linkedgeodata.org/ontology/University
+			}
+			sameas: {
+				type: "uri"
+				value: http://dbpedia.org/resource/National_University_of_Ireland,_Galway
+			}
+		}
+		
+EXAMPLE: lgd_lookup?center=53.7724,-7.1632&radius=1000
+
+#### Enrolment API 
+
+provide `schoolGrade_label` in enrolment?school_id and sort it by grade
 
 ### Data
 Finalize dataset for school.

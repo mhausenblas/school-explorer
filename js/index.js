@@ -29,11 +29,12 @@ var SE = { // School Explorer
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
 		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
+		EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
 		ADDRESS_FIELD_ID : "address", // the @id of the address input field
 		RELIGION_FIELD_ID : "religion", // the @id of the religion input field
 		GENDER_FIELD_ID : "gender", // the @id of the gender input field
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
-		SHOW_MORE_SCHOOLS : "show_more_schools", // the @id of the 'show more schools' element
+		SHOW_MORE_SCHOOLS : "show_more_schools", // the @class of the 'show more schools' element
 		CLOSE_ALL_INFO_WINDOW : "close_iw", // the @id of the 'close info window' element
 		STOP_BOUNCE : "stop_bounce", // the @id of the 'show more schools' element
 		SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
@@ -112,7 +113,11 @@ var SE = { // School Explorer
 		// expand school listing item at click and let the associated marker bounce 
 		$('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function(){
 			var schoolID = $(this).attr('about');
-			var el =  $(this);
+			var el = $(this);
+			
+			// TODO: replace the 'More ...' with street view of school
+			$('.' + SE.C.EXPAND_SCHOOL).html("");
+			
 			// stop bouncing of all markers and start bouncing of associated marker:
 			$.each(SE.G.mlist, function(sID, marker){
  				marker.setAnimation(null);
@@ -202,14 +207,12 @@ var SE = { // School Explorer
 						
 						if(i < SE.C.MAX_SCHOOL_LISTING) {
 							buf.push("<div class='school_lst' about='"+row["school"].value+ "'>");
-							buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/><a href='" + row["school"].value + "'>" + row["label"].value + "</a>");
-							buf.push("</div>");
 						}
 						else {
-							buf.push("<div class='school_lst hidden'>");
-							buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/><a href='" + row["school"].value + "'>" + row["label"].value + "</a>");
-							buf.push("</div>");	
+							buf.push("<div class='school_lst hidden'> about='"+row["school"].value+ "'>");
 						}
+						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value + " <span class='expand_school'>More ...</span>");
+						buf.push("</div>");
 						SE.addSchoolMarker(row, schoolSymbol);
 					}
 					$('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
