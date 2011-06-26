@@ -175,7 +175,8 @@ margin: .3em 0 .1em 0;
 .school_info .summary {
 font-size: 8pt;
 color: #606060;
-border-bottom: 1px solid #c0c0c0;
+border-bottom: 1px solid #e0e0e0;
+margin: 0 0 10px 0;
 }
 
 .school_info .head {
@@ -183,17 +184,25 @@ color: #909090;
 }
 
 .school_info .enrolment,.agegroups {
-margin: 10px 0 0 0;
+margin: 0 0 3px 0;
 padding: 2px;
 float: left;
 font-size: 80%;
 }
 
+.chart_more{
+text-align: left;
+font-size: 60%;
+color: #909090;
+}
+
 .school_more {
-margin: 10px 0 0 0;
+margin: 25px 0 0 0;
 clear: left;
 font-size: 9pt;
 cursor: pointer;
+border-top: 1px solid #e0e0e0;
+text-align: right;
 }
 
 .hidden {
@@ -213,6 +222,10 @@ border-bottom: 2px solid #a0a0a0;
 #show_more_schools, #stop_bounce{
 margin: 5px 0 0 10px;
 cursor: pointer;
+color:#0000E4;
+}
+
+#show_nearby{
 color:#0000E4;
 }
 

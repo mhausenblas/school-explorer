@@ -77,11 +77,11 @@ This software is Public Domain.
 
 ### API
 Determine remaining API components and implement them:
-Upcoming age groups
-Demographics for school's area
+
+ * provide `schoolGrade_label` in enrolment?school_id and sort it by grade
 
 ### Data
-Finalize dataset for school
+Finalize dataset for school.
 
 ### Server
 Setup to include Apache, Fuseki, Lucene (LARQ)

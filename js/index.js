@@ -17,6 +17,8 @@ var SE = { // School Explorer
 		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
 		INFO_API_BASE : "info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+		
+		LINKEDGEODATA_API_BASE : "http://browser.linkedgeodata.org/?", // such as http://browser.linkedgeodata.org/?lat=53.289191332462&lon=-9.0729670467386&zoom=15
 
 		MAX_SCHOOL_LISTING : 10, // determines how many schools are rendered below the map
 		MAP_TYPE : google.maps.MapTypeId.ROADMAP, // the type of the map, see http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeId
@@ -33,6 +35,7 @@ var SE = { // School Explorer
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
 		SHOW_MORE_SCHOOLS : "show_more_schools", // the @id of the 'show more schools' element
 		STOP_BOUNCE : "stop_bounce", // the @id of the 'show more schools' element
+		SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
 		
 		MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
 	},
@@ -44,6 +47,7 @@ var SE = { // School Explorer
 		selectedZoomFactor : 11, // keeps track of the selected zoom factor ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
 		genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
 		religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' },
+		slist : {}, // 'associative' array (school ID -> school)*
 		mlist : {}, // 'associative' array (school ID -> marker)*
 		iwlist : {}, // 'associative' array (school ID -> info window)*
 		vlist : [], //  array of 'visited' schools (schoolID)*
@@ -114,6 +118,13 @@ var SE = { // School Explorer
     		});
 			SE.G.mlist[schoolID].setAnimation(google.maps.Animation.BOUNCE);
 			
+			// activate associated info window via school look-up table
+			SE.renderSchool(SE.G.slist[schoolID], function(iwcontent){
+				var s = SE.G.slist[schoolID];
+				SE.G.iwlist[s["school"].value] = SE.addSchoolInfo(s["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
+			});
+			
+			// check if school has already been visited via listing and show details if not ...
 			if($.inArray(schoolID, SE.G.vlist) < 0 ) { // not yet visited
 				// get school's enrolments:
 				$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { 
@@ -133,7 +144,21 @@ var SE = { // School Explorer
     		});
 		});
 		
-		//TODO: fix issue with re-opening info window - seems that ATM a info window can only be opend once (reset iwlist[] maybe?)
+		// show nearby via OSM
+		// $('.' + SE.C.SHOW_NEARBY).live('click', function(){
+		// 	var osmLink = $(this).attr('href');
+		// 	$('#osm_target').dialog({
+		// 		height: 800,
+		// 		modal: true,
+		// 		title: 'Nearby on OpenStreetMap ...',
+		// 		open: function(){
+		// 			$(this).load(osmLink);
+		// 			$(this).dialog("open"); 
+		// 			return true;
+		// 		}
+		// 	});
+		// });
+
 	},
 	
 	showSchools  : function() {
@@ -165,6 +190,8 @@ var SE = { // School Explorer
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
+
+						SE.G.slist[row["school"].value] = row; // set up school look-up table
 						
 						if(i < SE.C.MAX_SCHOOL_LISTING) {
 							buf.push("<div class='school_lst' about='"+row["school"].value+ "'>");
@@ -251,17 +278,16 @@ var SE = { // School Explorer
 	
 	renderSchool : function(school, callback){
 		var buf = ["<div class='school_info'>"];
-		var reli = school["religion"].value;
 		buf.push("<h2>" + school["label"].value + "</h2>");
 		buf.push("<div class='summary'>");
 		buf.push("<span class='head'>Address:</span> " + school["address1"].value + " " + school["address2"].value + ", " + school["region_label"].value + " | ");
-		buf.push("<span class='head'>Religion:</span> " + reli.substring(reli.lastIndexOf('/') + 1).toLowerCase() + " | "); // should also be religion_label
+		buf.push("<span class='head'>Religion:</span> " + school["religion_label"].value.toLowerCase() + " | ");
 		buf.push("<span class='head'>Gender:</span> " + school["gender_label"].value.toLowerCase());
 		buf.push("</div>"); // EO summary
 		
 		callback(buf.join("")); // immediatly render what we have so far as rendering the stats might take a bit
 		
-		SE.renderStats(school["school"].value, buf, callback); // render the enrollment stats
+		SE.renderStats(school, buf, callback); // render the enrollment stats
 	},
 	
 	addSchoolInfo : function(schoolID, marker, iwcontent){
@@ -269,13 +295,13 @@ var SE = { // School Explorer
 		
 		if(schoolID in SE.G.iwlist){ // the info window has already be created just updated content
 			infowindow = SE.G.iwlist[schoolID];
-			infowindow.setContent(iwcontent);
 		}
 		else {
 			infowindow = new google.maps.InfoWindow();
-			infowindow.setContent(iwcontent);
-			infowindow.open(SE.G.smap, marker);
+
 		}
+		infowindow.setContent(iwcontent);
+		infowindow.open(SE.G.smap, marker);
 		return infowindow;
 	},
 		
@@ -346,10 +372,11 @@ var SE = { // School Explorer
 		return SE.G.religionCCodes['others']; // all others are white
 	},
 	
-	renderStats : function(schoolID, buf, callback){
+	renderStats : function(school, buf, callback){
 		buf.push("<div class='enrolment'>");
 		var xdata = [], ydata = [];
 		var total = 0;
+		var schoolID = school["school"].value;
 		
 		// fill the chart's data via API
 		$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
@@ -372,7 +399,8 @@ var SE = { // School Explorer
 				type : 'bvg', 
 				colors : ['009933']
 			}))).html());
-			buf.push("Total: " +  total + " pupils</div>"); // EO enrolment
+			buf.push("<div class='chart_more'>Total: " +  total + " pupils</div>"); // EO enrolment
+			buf.push("</div>"); // EO enrolment
 			
 			callback(buf.join("")); // immediatly render what we have so far 
 			
@@ -405,7 +433,7 @@ var SE = { // School Explorer
 				else {
 					buf.push("No demographics available for this area, sorry ...</div>"); // EO age groups
 				}
-				buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new'>More ...</a></div>");
+				buf.push("<div class='school_more'><a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + school["lat"].value  + "&lon=" + school["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>Nearby</a> | <a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
 				buf.push("</div>"); // EO school_info 
 				callback(buf.join(""));
 			});
