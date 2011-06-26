@@ -8,7 +8,7 @@
  * @link      http://deri.ie/
  */
 
-require_once '/var/www/school-explorer/lib/easyrdf/lib/EasyRdf.php';
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '../lib/easyrdf/lib/EasyRdf.php';
 
 class SchoolExplorer
 {
