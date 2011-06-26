@@ -143,12 +143,16 @@ margin: 0 0 10px 0;
 padding: .1em;
 }
 
+#school_details{
+	padding: 40px 0 0 50px;
+}
+
 .school_lst{
-font-size: 65%;
+font-size: 8pt;
 float: left;
 margin: 1em;
-padding: 2px 19px 1px 0;
-width: 150px;
+padding: 2px 10px 1px 0;
+width: 160px;
 box-shadow: 1px 1px 1px rgba(200, 200, 200, 0.4);
 }
 
@@ -216,7 +220,7 @@ font-size: 8pt;
 }
 
 #ctrl span{
-border-bottom: 2px solid #a0a0a0;
+border-bottom: 2px solid #e0e0e0;
 margin: 5px 0 0 10px;
 cursor: pointer;
 color:#0000E4;
@@ -227,8 +231,21 @@ color:#0000E4;
 }
 
 .expand_school{
-color:#0000E4;
+color: #aeaeae;
+font-size: 12pt;
 cursor: pointer;
+text-align: left;
+}
+
+#school_sv_map{
+display: none;
+float: left;
+margin: 50px 0 0 0;
+width: 300px;
+height: 250px;
+box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-moz-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 }
 
 } /*end of @media screen, projection, tv*/

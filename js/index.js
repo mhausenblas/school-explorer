@@ -27,6 +27,7 @@ var SE = { // School Explorer
 		RESULT_ELEMENT_ID : "school_results", // the @id of the legend
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
+		SV_MAP_ELEMENT_ID : "school_sv_map", // the @id of the SV map
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
 		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
 		EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
@@ -115,9 +116,6 @@ var SE = { // School Explorer
 			var schoolID = $(this).attr('about');
 			var el = $(this);
 			
-			// TODO: replace the 'More ...' with street view of school
-			$('.' + SE.C.EXPAND_SCHOOL).html("");
-			
 			// stop bouncing of all markers and start bouncing of associated marker:
 			$.each(SE.G.mlist, function(sID, marker){
  				marker.setAnimation(null);
@@ -135,10 +133,26 @@ var SE = { // School Explorer
 				// get school's enrolments:
 				$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { 
 					var total = 0;
+					var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
+					var schoolSVMapID = schoolID.substring(schoolID.lastIndexOf("/") + 1) + '_map';
+					
 					$.each(data.data, function(i, grade){
 						total = total + parseInt(grade.numberOfStudents.value);
 					});
-					el.append("<div>" + total + " pupils</div>");
+//					el.append("<div>" + total + " pupils</div>");
+					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>Nearby</a></div>");
+					$('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
+					
+					el.css('background-image', 'url(../img/seen.png)');
+					el.css('background-position', 'top right');
+					el.css('background-repeat', 'no-repeat');
+					el.css('color', '#aeaeae');
+					el.css('border', '1px solid #f0f0f0');
+					// el.css('font-size', '8pt');
+					
+					// add with street view of school
+					SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
+					
 					SE.G.vlist.push(schoolID); // mark school visited
 				});
 			}
@@ -202,16 +216,17 @@ var SE = { // School Explorer
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
+						var schoolSVMapID = row["school"].value.substring(row["school"].value.lastIndexOf("/")  + 1 )  + '_map'; // http://data-gov.ie/school/64350N -> 64350N_map
 
 						SE.G.slist[row["school"].value] = row; // set up school look-up table
 						
 						if(i < SE.C.MAX_SCHOOL_LISTING) {
-							buf.push("<div class='school_lst' about='"+row["school"].value+ "'>");
+							buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
 						}
 						else {
-							buf.push("<div class='school_lst hidden'> about='"+row["school"].value+ "'>");
+							buf.push("<div class='school_lst hidden'> about='" + row["school"].value + "'>");
 						}
-						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value + " <span class='expand_school'>More ...</span>");
+						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div><div class='school_sv_map' id='" + schoolSVMapID + "'></div>");
 						buf.push("</div>");
 						SE.addSchoolMarker(row, schoolSymbol);
 					}
@@ -271,6 +286,23 @@ var SE = { // School Explorer
 		$.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
 	},
 	
+	viewSchoolOnSV : function(elemID, centerLoc){
+		var schoolpano = new google.maps.StreetViewPanorama(document.getElementById(elemID), {
+			position : centerLoc,
+			pov: {
+				heading : 100,
+				pitch : 0,
+				zoom : 1
+			},
+			panControl : false,
+			addressControl: false,
+			scrollwheel : false,
+			zoomControl : false
+		});
+		schoolpano.setVisible(true);
+		$('#' + elemID).slideDown('slow');
+	},
+
 	addSchoolMarker : function(school, schoolSymbol){
 		var marker = new google.maps.Marker({
 			position: new google.maps.LatLng(school["lat"].value, school["long"].value),
@@ -463,7 +495,8 @@ var SE = { // School Explorer
 $(document).ready(function(){
 	if ($("#form_search")) {
 		SE.go();
+		// SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
-		//$('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
+		// $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
 	}
 });
