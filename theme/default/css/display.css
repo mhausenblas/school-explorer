@@ -217,9 +217,6 @@ font-size: 8pt;
 
 #ctrl span{
 border-bottom: 2px solid #a0a0a0;
-}
-
-#show_more_schools, #stop_bounce{
 margin: 5px 0 0 10px;
 cursor: pointer;
 color:#0000E4;

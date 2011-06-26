@@ -34,6 +34,7 @@ var SE = { // School Explorer
 		GENDER_FIELD_ID : "gender", // the @id of the gender input field
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
 		SHOW_MORE_SCHOOLS : "show_more_schools", // the @id of the 'show more schools' element
+		CLOSE_ALL_INFO_WINDOW : "close_iw", // the @id of the 'close info window' element
 		STOP_BOUNCE : "stop_bounce", // the @id of the 'show more schools' element
 		SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
 		
@@ -144,6 +145,12 @@ var SE = { // School Explorer
     		});
 		});
 		
+		$('#' + SE.C.CLOSE_ALL_INFO_WINDOW).live('click', function(){
+			$.each(SE.G.iwlist, function(sID, infowindow){
+ 				infowindow.close();
+    		});
+		});
+		
 		// show nearby via OSM
 		// $('.' + SE.C.SHOW_NEARBY).live('click', function(){
 		// 	var osmLink = $(this).attr('href');
@@ -186,7 +193,7 @@ var SE = { // School Explorer
 					// create the map centered on the location of the address
 					SE.initMap(lat, lng);
 					
-					buf.push("<div id='ctrl'><span id='stop_bounce'>Reset animation ...</span><span id='show_more_schools'>More schools ...</span></div>");
+					buf.push("<div id='ctrl'><span id='close_iw'>Close all info windows ...</span><span id='stop_bounce'>Reset animation ...</span><span id='show_more_schools'>More schools ...</span></div>");
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
