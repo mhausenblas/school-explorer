@@ -144,7 +144,8 @@ padding: .1em;
 }
 
 #school_details{
-	padding: 40px 0 0 50px;
+float: right;
+padding: 40px 0 0 50px;
 }
 
 .school_lst{
@@ -240,6 +241,11 @@ cursor: pointer;
 text-align: left;
 }
 
+
+#school_context{
+float: left;	
+}
+
 #school_sv_map{
 display: none;
 float: left;
@@ -250,5 +256,21 @@ box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 -moz-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 -webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 }
+
+#school_nearby{
+display: none;
+clear: left;
+margin: 50px 0 0 0;
+width: 300px;
+box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-moz-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+}
+
+.nearby_pois{
+font-size: 80%;
+padding: .5em;
+}
+
 
 } /*end of @media screen, projection, tv*/

@@ -17,6 +17,7 @@ var SE = { // School Explorer
 		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
 		INFO_API_BASE : "info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+		NEARBY_API_BASE : "lgd_lookup?center=", // such as lgd_lookup?center=53.7724,-7.1632&radius=1000
 		
 		LINKEDGEODATA_API_BASE : "http://browser.linkedgeodata.org/?", // such as http://browser.linkedgeodata.org/?lat=53.289191332462&lon=-9.0729670467386&zoom=15
 
@@ -28,6 +29,7 @@ var SE = { // School Explorer
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
 		SV_MAP_ELEMENT_ID : "school_sv_map", // the @id of the SV map
+		NEARBY_ELEMENT_ID : "school_nearby", // the @id of the nearby element	
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
 		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
 		EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
@@ -116,6 +118,9 @@ var SE = { // School Explorer
 			var schoolID = $(this).attr('about');
 			var el = $(this);
 			
+			// reset school context view
+			$('#' + SE.C.NEARBY_ELEMENT_ID).slideUp("slow");
+			
 			// stop bouncing of all markers and start bouncing of associated marker:
 			$.each(SE.G.mlist, function(sID, marker){
  				marker.setAnimation(null);
@@ -142,18 +147,18 @@ var SE = { // School Explorer
 //					el.append("<div>" + total + " pupils</div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>Nearby</a></div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
-					
+					// mark school visited:
 					el.css('background-image', 'url(../img/seen.png)');
 					el.css('background-position', 'top right');
 					el.css('background-repeat', 'no-repeat');
 					el.css('color', '#aeaeae');
 					el.css('border', '1px solid #f0f0f0');
-					// el.css('font-size', '8pt');
-					
-					// add with street view of school
+					SE.G.vlist.push(schoolID); 
+				
+					// add with street view and nearby POIs for  school:
 					SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
-					
-					SE.G.vlist.push(schoolID); // mark school visited
+					SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value)
+					$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
 				});
 			}
 		});
@@ -242,6 +247,12 @@ var SE = { // School Explorer
 		return (religion == "") ? SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + gender : SE.C.NEAR_API_BASE + lat + "," + lng + "&religion=" + religion + "&gender=" + gender;
 	},
 	
+	// for example: lgd_lookup?center=53.274795076024,-9.0540373672574&radius=1000
+	// if radius == null, defaults to 1000m
+	buildNearPOIURI : function(lat, lng, radius){
+		return (radius) ? SE.C.NEARBY_API_BASE + lat + "," + lng + "&radius=" + radius : SE.C.NEAR_API_BASE + lat + "," + lng + "&radius=1000";
+	},
+	
 	position2Address : function(address, callback){
 		var geocoder = new google.maps.Geocoder();
 		geocoder.geocode({'address': address, 'region': 'ie'}, function(data, status) {
@@ -301,6 +312,39 @@ var SE = { // School Explorer
 		});
 		schoolpano.setVisible(true);
 		$('#' + elemID).slideDown('slow');
+	},
+
+	viewSchoolNearby : function(elemID, lat, lng){
+
+		// now, get the schools nearby things via LinkedGeoData
+		$.getJSON(SE.buildNearPOIURI(lat, lng, 2000), function(data, textStatus){
+			if(data.data) {
+				var buf = [""];
+				var rows = data.data;
+
+				buf.push("<div class='nearby_pois'><h3>Nearby</h3><ul>");
+				for(i in rows) {
+					var row = rows[i];
+					var poiType = "";
+
+					buf.push("<li><a href='" + row["poi"].value +"' target='_blank'>" + row["poi_label"].value + "</a>");
+					if(row["poi_type"]) {
+						poiType = row["poi_type"].value;
+						buf.push(" a <a href='" + poiType +"' target='_blank'>" + poiType.substring(poiType.lastIndexOf("/") + 1).toLowerCase() + "</a>");
+					}
+					if(row["sameas"].value) {
+						buf.push(" - learn more on <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
+						if(SE.C.DEBUG){
+							console.log("For location: [" + lat + "," + lng + "] I found :" + row["sameas"].value);
+						}
+					}
+					buf.push("</li>");
+				}
+				buf.push("</ul>");
+				$('#' + elemID).html(buf.join(""));
+				$('#' + elemID).slideDown('slow');
+			}
+		});
 	},
 
 	addSchoolMarker : function(school, schoolSymbol){
