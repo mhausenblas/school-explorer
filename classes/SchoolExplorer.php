@@ -8,6 +8,8 @@
  * @link      http://deri.ie/
  */
 
+require_once '/var/www/school-explorer/lib/easyrdf/lib/EasyRdf.php';
+
 class SchoolExplorer
 {
     var $config;
@@ -41,6 +43,10 @@ class SchoolExplorer
 
             case 'near': case 'info': case 'enrolment': case 'agegroups':
                 $this->sendAPIResponse();
+                break;
+
+            case 'lgd_lookup':
+                $this->sendExternalAPIResponse();
                 break;
 
             default: //home
@@ -216,6 +222,7 @@ EOD;
         $this->config['prefixes'] = array(
             'rdf'               => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
             'rdfs'              => 'http://www.w3.org/2000/01/rdf-schema#',
+            'owl'               => 'http://www.w3.org/2002/07/owl#',
             'xsd'               => 'http://www.w3.org/2001/XMLSchema#',
             'dcterms'           => 'http://purl.org/dc/terms/',
             'foaf'              => 'http://xmlns.com/foaf/0.1/',
@@ -286,7 +293,8 @@ EOD;
             'info' => array('school_id', 'school_name'),
             'near' => array('center', 'religion', 'gender'), //How about we use en-uk's "centre"?
             'enrolment' => array('school_id'),
-            'agegroups' => array('school_id')
+            'agegroups' => array('school_id'),
+            'lgd_lookup' => array('center', 'radius')
         );
     }
 
@@ -300,6 +308,13 @@ EOD;
     function sendAPIResponse()
     {
         $response = $this->getRequestedData();
+        $this->returnJSON($response);
+    }
+
+
+    function sendExternalAPIResponse()
+    {
+        $response = $this->getExternalRequestedData();
         $this->returnJSON($response);
     }
 
@@ -338,10 +353,9 @@ EOD;
     }
 
 
-    function getRequestedData()
+    function verifyAPIPath()
     {
         $paths   = $this->config['requestPath'];
-        $queries = $this->config['requestQuery'];
 
         $apiElement = null;
         $apiElements = $this->getAPIElements();
@@ -358,7 +372,15 @@ EOD;
             $this->returnError('missing');
         }
 
+        return $apiElement;
+    }
+
+
+    function verifyAPIQuery($apiElement)
+    {
+        $apiElements = $this->getAPIElements();
         $apiElementKeyValue = null;
+        $queries = $this->config['requestQuery'];
 
         //Make sure that the query param is allowed
         foreach($queries as $query => $kv) {
@@ -370,6 +392,15 @@ EOD;
         if (is_null($apiElementKeyValue)) {
             $this->returnError('missing');
         }
+
+        return $apiElementKeyValue;
+    }
+
+
+    function getRequestedData()
+    {
+        $apiElement = $this->verifyAPIPath();
+        $apiElementKeyValue = $this->verifyAPIQuery($apiElement);
 
         $query = '';
 
@@ -469,7 +500,7 @@ EOD;
             //Output: The top 50 items near these coordinates, ordered by distance descending (nearest first)
             //e.g., http://school-explorer/near?center=53.772431654289,-7.1632585894304&religion=Catholic&gender=Gender_Boys
             case 'near':
-                if (count($location) >= 2) {
+                if (count($location) == 2) {
                     $query = <<<EOD
                         SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?distance
                         WHERE {
@@ -520,17 +551,17 @@ EOD;
                     $query = <<<EOD
                         SELECT ?age ?age_label ?population
                         WHERE {
-                        <$schoolId>
-                            a sch-ont:School ;
-                            dcterms:isPartOf ?geoArea .
-                        ?observation
-                            qb:dataSet <http://stats.data-gov.ie/data/persons-by-gender-and-age> ;
-                            property:geoArea ?geoArea ;
-                            sdmx-dimension:sex sdmx-code:sex-T ;
-                            property:age1 ?age .
-                        ?age skos:notation ?age_label .
-                        FILTER (xsd:integer(?age_label) >= 0 && xsd:integer(?age_label) <= 5)
-                        ?observation property:population ?population .
+                            <$schoolId>
+                                a sch-ont:School ;
+                                dcterms:isPartOf ?geoArea .
+                            ?observation
+                                qb:dataSet <http://stats.data-gov.ie/data/persons-by-gender-and-age> ;
+                                property:geoArea ?geoArea ;
+                                sdmx-dimension:sex sdmx-code:sex-T ;
+                                property:age1 ?age .
+                            ?age skos:notation ?age_label .
+                            FILTER (xsd:integer(?age_label) >= 0 && xsd:integer(?age_label) <= 5)
+                            ?observation property:population ?population .
                         }
                         ORDER BY ?age
 
@@ -551,6 +582,60 @@ EOD;
         }
     }
 
+    //TODO: This is generalized right now, working only with the LinkedGeoData API.
+    //Get all items near a point
+    //Input: lgd_lookup?center=lat,long&radius=r (r is in meters, if no radius, defaults to 1000)
+    //Output: Items near these coordinates with radius r
+    //e.g., http://school-explorer/center=53.274795076024,-9.0540373672574&radius=1000
+
+    function getExternalRequestedData()
+    {
+        $apiElement = $this->verifyAPIPath();
+        $apiElementKeyValue = $this->verifyAPIQuery($apiElement);
+
+        $location = $this->getLocation($apiElementKeyValue);
+        $radius = $this->getRadius($apiElementKeyValue);
+
+        $data = array();
+
+        if (count($location) == 2) {
+            $rdf = new EasyRdf_Graph("http://linkedgeodata.org/data/near/".$location[0].','.$location[1]."/$radius");
+            $rdf->load();
+
+            $rdfData = $rdf->toRdfPhp();
+
+            foreach ($rdfData as $subject => $po) {
+                $poi_label = '';
+                if (isset($po[$this->getPrefix('rdfs').'label'])) {
+                    $poi_label = array('type'  => $po[$this->getPrefix('rdfs').'label'][0]['type'],
+                                       'value' => $po[$this->getPrefix('rdfs').'label'][0]['value']);
+                }
+                $poi_type = '';
+                if (isset($po[$this->getPrefix('rdf').'type'])) {
+                    $poi_type = array('type'  => $po[$this->getPrefix('rdf').'type'][0]['type'],
+                                      'value' => $po[$this->getPrefix('rdf').'type'][0]['value']);
+                }
+                $sameas = '';
+                if (isset($po[$this->getPrefix('owl').'sameAs'])) {
+                    $sameas = array('type'  => $po[$this->getPrefix('owl').'sameAs'][0]['type'],
+                                    'value' => $po[$this->getPrefix('owl').'sameAs'][0]['value']);
+                }
+
+                if (!empty($poi_label)) {
+                    $data[] = array(
+                        'poi' => array('type'  => 'uri',
+                                       'value' => $subject),
+                        'poi_label' => $poi_label,
+                        'poi_type' => $poi_type,
+                        'sameas' => $sameas
+                    );
+                }
+            }
+        }
+
+        //TODO: get rid of this json_encode, results, bindings from returnJSON();
+        return json_encode(array('results' => array('bindings' => $data)));
+    }
 
     function getLocation($apiElementKeyValue)
     {
@@ -567,6 +652,16 @@ EOD;
         return array();
     }
 
+
+    function getRadius($apiElementKeyValue)
+    {
+        if (isset($apiElementKeyValue['radius']) && !empty($apiElementKeyValue['radius'])
+            && is_numeric($apiElementKeyValue['radius'])) {
+            return intval($apiElementKeyValue['radius']);
+        }
+
+        return '1000';
+    }
 
     function getSchoolId($apiElementKeyValue)
     {
