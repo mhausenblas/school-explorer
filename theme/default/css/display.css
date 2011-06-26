@@ -267,6 +267,21 @@ box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 -webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 }
 
+#school_nearby_slider, #school_nearby_radius{
+display: none;
+clear:left;
+}
+
+#school_nearby_slider{
+clear:left;
+margin: .5em 0 0 0;
+}
+
+#school_nearby_radius{
+font-size: 12pt;
+}
+
+
 .nearby_pois{
 font-size: 80%;
 padding: .5em;

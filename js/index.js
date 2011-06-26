@@ -29,7 +29,12 @@ var SE = { // School Explorer
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
 		SV_MAP_ELEMENT_ID : "school_sv_map", // the @id of the SV map
-		NEARBY_ELEMENT_ID : "school_nearby", // the @id of the nearby element	
+		NEARBY_ELEMENT_ID : "school_nearby", // the @id of the nearby element
+		NEARBY_SLIDER_ELEMENT_ID : "school_nearby_slider", // the @id of the nearby slider
+		NEARBY_RADIUS_ELEMENT_ID : "school_nearby_radius", // the @id of the nearby radius
+		DEFAULT_SEARCH_RADIUS : 1000, // default ...
+		MIN_SEARCH_RADIUS : 200, // ... min ...
+		MAX_SEARCH_RADIUS : 5000, // ... max radius for the search
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
 		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
 		EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
@@ -57,12 +62,24 @@ var SE = { // School Explorer
 		iwlist : {}, // 'associative' array (school ID -> info window)*
 		vlist : [], //  array of 'visited' schools (schoolID)*
 		chartAPI : null, // the jgcharts object http://www.maxb.net/scripts/jgcharts
+		contextRadius : 1000, // in m ... used for querying the LGD POIs
+		currentSchoolID : 0 // selected school
 	},
 	
 	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
 		$("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
+		$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
+				value: SE.C.DEFAULT_SEARCH_RADIUS,
+				min: SE.C.MIN_SEARCH_RADIUS,
+				max: SE.C.MAX_SEARCH_RADIUS,
+				slide: function(event, ui) {
+						SE.G.contextRadius =  ui.value;
+						$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html(ui.value + "m");
+				}
+		});
+		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html(SE.C.DEFAULT_SEARCH_RADIUS + "m");
 		SE.initLegend();
 		SE.handleInteraction();
 	},
@@ -118,6 +135,8 @@ var SE = { // School Explorer
 			var schoolID = $(this).attr('about');
 			var el = $(this);
 			
+			SE.G.currentSchoolID = schoolID;
+			
 			// reset school context view
 			$('#' + SE.C.NEARBY_ELEMENT_ID).slideUp("slow");
 			
@@ -145,7 +164,7 @@ var SE = { // School Explorer
 						total = total + parseInt(grade.numberOfStudents.value);
 					});
 //					el.append("<div>" + total + " pupils</div>");
-					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>Nearby</a></div>");
+					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>OpenStreetMap</a></div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
 					// mark school visited:
 					el.css('background-image', 'url(../img/seen.png)');
@@ -157,11 +176,16 @@ var SE = { // School Explorer
 				
 					// add with street view and nearby POIs for  school:
 					SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
-					SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value)
+					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
+					$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
+					SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
 					$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
 				});
 			}
 		});
+		
+		// TODO: when context radius changes, perform new LGD search and refresh school_nearby
+		
 		// reset animated marker
 		$('#' + SE.C.STOP_BOUNCE).live('click', function(){
 			$.each(SE.G.mlist, function(sID, marker){
@@ -248,9 +272,8 @@ var SE = { // School Explorer
 	},
 	
 	// for example: lgd_lookup?center=53.274795076024,-9.0540373672574&radius=1000
-	// if radius == null, defaults to 1000m
 	buildNearPOIURI : function(lat, lng, radius){
-		return (radius) ? SE.C.NEARBY_API_BASE + lat + "," + lng + "&radius=" + radius : SE.C.NEAR_API_BASE + lat + "," + lng + "&radius=1000";
+		return SE.C.NEARBY_API_BASE + lat + "," + lng + "&radius=" + radius;
 	},
 	
 	position2Address : function(address, callback){
@@ -317,7 +340,7 @@ var SE = { // School Explorer
 	viewSchoolNearby : function(elemID, lat, lng){
 
 		// now, get the schools nearby things via LinkedGeoData
-		$.getJSON(SE.buildNearPOIURI(lat, lng, 2000), function(data, textStatus){
+		$.getJSON(SE.buildNearPOIURI(lat, lng, SE.G.contextRadius), function(data, textStatus){
 			if(data.data) {
 				var buf = [""];
 				var rows = data.data;
@@ -333,7 +356,7 @@ var SE = { // School Explorer
 						buf.push(" a <a href='" + poiType +"' target='_blank'>" + poiType.substring(poiType.lastIndexOf("/") + 1).toLowerCase() + "</a>");
 					}
 					if(row["sameas"].value) {
-						buf.push(" - learn more on <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
+						buf.push(", see also <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
 						if(SE.C.DEBUG){
 							console.log("For location: [" + lat + "," + lng + "] I found :" + row["sameas"].value);
 						}
