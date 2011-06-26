@@ -259,7 +259,8 @@ var SE = { // School Explorer
 		new google.maps.Marker({
 			position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
 			map: SE.G.smap,
-			title: $('#' + SE.C.ADDRESS_FIELD_ID).val() + " (home)"
+			icon: new google.maps.MarkerImage('../img/home.png'),
+			title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
 		});
 		
 		// make map fit in the container and set in focus
