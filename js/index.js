@@ -224,7 +224,7 @@ var SE = { // School Explorer
 							buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
 						}
 						else {
-							buf.push("<div class='school_lst hidden'> about='" + row["school"].value + "'>");
+							buf.push("<div class='school_lst hidden' about='" + row["school"].value + "'>");
 						}
 						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div><div class='school_sv_map' id='" + schoolSVMapID + "'></div>");
 						buf.push("</div>");
