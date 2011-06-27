@@ -33,10 +33,6 @@ class SchoolExplorer
                 require_once 'templates/page.school.html';
                 break;
 
-            case 'area':
-                require_once 'templates/page.area.html';
-                break;
-
             case 'map':
                 require_once 'templates/page.map.html';
                 break;
@@ -46,7 +42,7 @@ class SchoolExplorer
                 break;
 
             case 'lgd_lookup':
-                $this->sendExternalAPIResponse();
+                $this->sendRemoteAPIResponse();
                 break;
 
             default: //home
@@ -248,7 +244,7 @@ EOD;
             'dsd'          => 'http://stats.data-gov.ie/dsd/',
             'property'     => 'http://stats.data-gov.ie/property/',
             'geoDataGov'   => 'http://geo.data-gov.ie/',
-            'DataGov'   => 'http://data-gov.ie/',
+            'DataGov'      => 'http://data-gov.ie/',
 
             'sch-ont' => 'http://education.data.gov.uk/ontology/school#',
 
@@ -272,6 +268,7 @@ EOD;
             'Gender_Boys'  => $schOnt
         );
     }
+
 
     function buildQueryURI($query = null)
     {
@@ -307,14 +304,16 @@ EOD;
 
     function sendAPIResponse()
     {
+        $this->verifyAPIPathQuery();
         $response = $this->getRequestedData();
         $this->returnJSON($response);
     }
 
 
-    function sendExternalAPIResponse()
+    function sendRemoteAPIResponse()
     {
-        $response = $this->getExternalRequestedData();
+        $this->verifyAPIPathQuery();
+        $response = $this->getRemoteAPIData();
         $this->returnJSON($response);
     }
 
@@ -353,7 +352,7 @@ EOD;
     }
 
 
-    function verifyAPIPath()
+    function verifyAPIPathQuery()
     {
         $paths   = $this->config['requestPath'];
 
@@ -372,13 +371,6 @@ EOD;
             $this->returnError('missing');
         }
 
-        return $apiElement;
-    }
-
-
-    function verifyAPIQuery($apiElement)
-    {
-        $apiElements = $this->getAPIElements();
         $apiElementKeyValue = null;
         $queries = $this->config['requestQuery'];
 
@@ -393,23 +385,23 @@ EOD;
             $this->returnError('missing');
         }
 
-        return $apiElementKeyValue;
+        $this->config['apiRequest']['path']  = $apiElement;
+        $this->config['apiRequest']['query'] = $apiElementKeyValue;
     }
 
 
     function getRequestedData()
     {
-        $apiElement = $this->verifyAPIPath();
-        $apiElementKeyValue = $this->verifyAPIQuery($apiElement);
+        $apiEKV = $this->config['apiRequest']['query'];
 
         $query = '';
 
         //TODO: Make this more abstract
-        $location = $this->getLocation($apiElementKeyValue);
-        $schoolId = $this->getSchoolId($apiElementKeyValue);
-        $schoolName = $this->getSchoolName($apiElementKeyValue);
-        $religion = $this->getReligion($apiElementKeyValue);
-        $gender = $this->getGender($apiElementKeyValue);
+        $location   = $this->getLocation($apiEKV);
+        $schoolId   = $this->getSchoolId($apiEKV);
+        $schoolName = $this->getSchoolName($apiEKV);
+        $religion   = $this->getReligion($apiEKV);
+        $gender     = $this->getGender($apiEKV);
 
         $schoolGraph = <<<EOD
             ?school
@@ -450,14 +442,14 @@ EOD;
         $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? '?school sch-ont:gender <'.$this->config['genders'][$gender].$gender.'> .' : '';
 
         $enrolmentGraph = <<<EOD
-?observation
-    DataGov:numberOfStudents ?numberOfStudents ;
-    DataGov:school ?school ;
-    DataGov:schoolGrade ?schoolGrade ;
-    a qb:Observation .
+            ?observation
+                DataGov:numberOfStudents ?numberOfStudents ;
+                DataGov:school ?school ;
+                DataGov:schoolGrade ?schoolGrade ;
+                a qb:Observation .
 EOD;
 
-        switch($apiElement) {
+        switch($this->config['apiRequest']['path']) {
             //Get all items near a point
             //Input: info?school_id=schoolURI&school_name=establishmentName (expecting schoolURI to be urlencoded)
             //Either id or name is required.
@@ -582,19 +574,18 @@ EOD;
         }
     }
 
+
     //TODO: This is generalized right now, working only with the LinkedGeoData API.
     //Get all items near a point
     //Input: lgd_lookup?center=lat,long&radius=r (r is in meters, if no radius, defaults to 1000)
     //Output: Items near these coordinates with radius r
     //e.g., http://school-explorer/center=53.274795076024,-9.0540373672574&radius=1000
-
-    function getExternalRequestedData()
+    function getRemoteAPIData()
     {
-        $apiElement = $this->verifyAPIPath();
-        $apiElementKeyValue = $this->verifyAPIQuery($apiElement);
+        $apiEKV = $this->config['apiRequest']['query'];
 
-        $location = $this->getLocation($apiElementKeyValue);
-        $radius = $this->getRadius($apiElementKeyValue);
+        $location = $this->getLocation($apiEKV);
+        $radius   = $this->getRadius($apiEKV);
 
         $data = array();
 
