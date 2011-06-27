@@ -79,11 +79,26 @@ var SE = { // School Explorer
 		var tmp = $('<div id="' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID +  '"/>');
 		
 		tmp.append("<h3>Overview</h3>");
-				
 		
+		SE.G.chartAPI = new jGCharts.Api();
+		
+		// http://en.wikipedia.org/wiki/National_school_%28Ireland%29
+		tmp.append($('<img>').attr('src', SE.G.chartAPI.make({ 
+			data : [3032, 183, 40, 14, 5, 2, 1, 1, 1, 1 ],
+			title       : 'National schools (2007)',
+			title_color : '111', 
+			title_size  : 14,
+			legend :  ['number of schools'], 
+			axis_labels : ["Catholic", "Church of Ireland", "Multi-denominational", "Presbyterian", "Inter-denominational", "Muslim", "Methodist", "Jewish", "Jehovah's Witnesses", "Quaker"], 
+			size : '500x200', 
+			type : 'p3',
+			colors : ['339900']
+		})));
 		
 		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
 	},
+	
+	// TODO: enable bookmark-able URIs through window.location (use for examples)
 	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
