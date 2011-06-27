@@ -448,7 +448,7 @@ EOD;
 
              ?observation ?numberOfStudentsURI ?numberOfStudents .
              ?numberOfStudentsURI a qb:MeasureProperty.
-             ?numberOfStudentsURI rdfs:label ?numberOfStudentsLabel .
+             ?numberOfStudentsURI rdfs:label ?schoolGrade .
 
 EOD;
 
@@ -523,7 +523,7 @@ EOD;
             case 'enrolment':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?numberOfStudents ?numberOfStudentsURI ?numberOfStudentsLabel
+                        SELECT DISTINCT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
                         WHERE {
                             $schoolGraph
                             FILTER (<$schoolId> = ?school)
