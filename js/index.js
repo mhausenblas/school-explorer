@@ -77,23 +77,41 @@ var SE = { // School Explorer
 	// static rendering of schools and some examples ...
 	renderSchoolOverview : function(){
 		var tmp = $('<div id="' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID +  '"/>');
+		var tmpf = $('<div style="float:left;"/>');
 		
-		tmp.append("<h3>Overview</h3>");
+		tmp.append('<h3>Overview</h3>');
 		
 		SE.G.chartAPI = new jGCharts.Api();
 		
 		// http://en.wikipedia.org/wiki/National_school_%28Ireland%29
-		tmp.append($('<img>').attr('src', SE.G.chartAPI.make({ 
+		tmpf.append($('<img>').attr('src', SE.G.chartAPI.make({ 
 			data : [3032, 183, 40, 14, 5, 2, 1, 1, 1, 1 ],
-			title       : 'National schools (2007)',
+			title       : 'National schools in Ireland (2007)',
 			title_color : '111', 
 			title_size  : 14,
 			legend :  ['number of schools'], 
 			axis_labels : ["Catholic", "Church of Ireland", "Multi-denominational", "Presbyterian", "Inter-denominational", "Muslim", "Methodist", "Jewish", "Jehovah's Witnesses", "Quaker"], 
-			size : '500x200', 
+			size : '400x130', 
 			type : 'p3',
 			colors : ['339900']
 		})));
+
+		tmp.append(tmpf);tmpf = $('<div style="float:left; margin: 0 1em 0 0;"/>');
+		// http://www.education.ie/servlet/blobservlet/stat_web_stats_09_10.pdf
+		tmpf.append($('<img>').attr('src', SE.G.chartAPI.make({ 
+			data : [31709, 13228, 8335, 3630, 610],
+			title       : 'Teachers First and Second level (2009/2010)',
+			title_color : '111', 
+			title_size  : 14,
+			legend :  ['Number of Teachers'], 
+			axis_labels : ["Primary Teachers", "2nd level - Secondary", "2nd level - Vocational", "2nd level - Community", "2nd level - Comprehensive"], 
+			size : '400x130', 
+			type : 'p3',
+			colors : ['003399']
+		})));
+		tmp.append(tmpf);
+		
+		tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3><p>In preparation ... use the search functionality meanwhile!</p>');
 		
 		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
 	},
