@@ -145,15 +145,16 @@ padding: .1em;
 
 #school_details{
 float: right;
-padding: 40px 0 0 50px;
+padding: 40px 0 0 0;
 }
 
 .school_lst{
+cursor: pointer;
 font-size: 8pt;
 float: left;
 margin: 1em;
 padding: 2px 10px 1px 0;
-width: 160px;
+width: 180px;
 box-shadow: 1px 1px 1px rgba(200, 200, 200, 0.4);
 }
 
@@ -201,6 +202,11 @@ font-size: 60%;
 color: #909090;
 }
 
+.no_stats{
+width: 180px;
+color: #a0a0c0;
+}
+
 .school_more {
 margin: 25px 0 0 0;
 clear: left;
@@ -230,6 +236,10 @@ cursor: pointer;
 color:#0000E4;
 }
 
+#close_iw, #stop_bounce {
+display: none;
+}
+
 #show_nearby{
 color:#0000E4;
 }
@@ -243,7 +253,7 @@ text-align: left;
 
 
 #school_context{
-float: left;	
+float: left;
 }
 
 #school_sv_map{
@@ -260,6 +270,7 @@ box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 #school_nearby{
 display: none;
 clear: left;
+font-size: 8pt;
 margin: 5px 0 0 0;
 width: 300px;
 box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
@@ -267,18 +278,20 @@ box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 -webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 }
 
-#school_nearby_slider, #school_nearby_radius{
+#school_nearby_radius{
 display: none;
 clear:left;
+font-size: 8pt;
+box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-moz-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+-webkit-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
+padding: 5px 0 2px 0;
+margin: 0 0 5px 0;
 }
 
 #school_nearby_slider{
+display: none;
 clear:left;
-}
-
-#school_nearby_radius{
-font-size: 8pt;
-margin: 0 0 5px 0;
 }
 
 #nearby_busy{
@@ -288,7 +301,6 @@ font-size: 7pt;
 }
 
 .nearby_pois{
-font-size: 80%;
 padding: .5em;
 }
 

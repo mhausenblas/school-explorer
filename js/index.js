@@ -45,7 +45,7 @@ var SE = { // School Explorer
 		FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
 		SHOW_MORE_SCHOOLS : "show_more_schools", // the @class of the 'show more schools' element
 		CLOSE_ALL_INFO_WINDOW : "close_iw", // the @id of the 'close info window' element
-		STOP_BOUNCE : "stop_bounce", // the @id of the 'show more schools' element
+		STOP_BOUNCE : "stop_bounce", // the @id of the 'stop bouncing' element
 		SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
 		
 		MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
@@ -87,16 +87,15 @@ var SE = { // School Explorer
 				max: SE.C.MAX_SEARCH_RADIUS,
 				slide: function(event, ui) {
 					SE.G.contextRadius =  ui.value; // get the current selected slider value (== search radius for nearby POIs in meter)
-					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than <strong>" + ui.value + "m</strong>:");
+					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + ui.value + "m</strong>:");
 				},
 				change: function(event, ui) {
 					if(SE.G.currentSchoolID){ // update context of current selected school
 						SE.showSchoolContext(SE.G.currentSchoolID);
 					}
-				}
-				
+				}	
 		});
-		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
+		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
 	},
 	
 	initLegend : function(){
@@ -143,13 +142,21 @@ var SE = { // School Explorer
 				$(this).removeClass('hidden');
 			});
 			$(this).html("");
+			// we're at the top, so scroll to the bottom
+			$.scrollTo('#' + SE.C.DETAILS_ELEMENT_ID, {duration : 500});
 		});
 		
-		// expand school listing item at click and let the associated marker bounce 
+		// expand school listing item, let the associated marker bounce and show context
 		$('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function(){
 			var schoolID = $(this).attr('about');
 			var el = $(this);
 			SE.G.currentSchoolID = schoolID;
+			
+			// show 'stop bouncing'
+			$('#' + SE.C.STOP_BOUNCE).show();
+			
+			// we're potentially far away, hence scroll back to top
+			$.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 500});
 			
 			// show the context of the school (street view and nearby POIs)
 			SE.showSchoolContext(schoolID);
@@ -174,25 +181,26 @@ var SE = { // School Explorer
 					$.each(data.data, function(i, grade){
 						total = total + parseInt(grade.numberOfStudents.value);
 					});
-					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>OpenStreetMap</a></div>");
+					// replace  'More ...' with details about school
+					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + "</div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
 					// mark school visited:
 					el.css('background-image', 'url(../img/seen.png)');
 					el.css('background-position', 'top right');
 					el.css('background-repeat', 'no-repeat');
 					el.css('color', '#aeaeae');
-					el.css('border', '1px solid #f0f0f0');
+					el.css('box-shadow', 'none');
 					SE.G.vlist.push(schoolID);  // add school to visited list
 				});
 			}
 		});
-		
 
-		// reset animated marker
+		// stop bouncing button
 		$('#' + SE.C.STOP_BOUNCE).live('click', function(){
 			$.each(SE.G.mlist, function(sID, marker){
  				marker.setAnimation(null);
     		});
+			$(this).hide();
 		});
 		
 		$('#' + SE.C.CLOSE_ALL_INFO_WINDOW).live('click', function(){
@@ -203,6 +211,8 @@ var SE = { // School Explorer
 			$.each(SE.G.mlist, function(sID, marker){
  				marker.setAnimation(null);
     		});
+			$(this).hide();
+			SE.hideSchoolContext();
 		});
 	},
 	
@@ -233,7 +243,7 @@ var SE = { // School Explorer
 					// create the map centered on the location of the address
 					SE.initMap(lat, lng);
 					
-					buf.push("<div id='ctrl'><span id='close_iw'>Close all info windows ...</span><span id='stop_bounce'>Reset animation ...</span><span id='show_more_schools'>More schools ...</span></div>");
+					buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
@@ -259,14 +269,14 @@ var SE = { // School Explorer
 	
 	showSchoolContext : function(schoolID){
 		var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
-		SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
+		SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
 		SE.nearbyBusy();
 		$('#' +  SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
 		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
 		$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
 		// now trigger LGD look-up and make the school listing fit:
-		SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
-		$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
+		SE.renderSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
+		$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "68%");
 	},
 	
 	hideSchoolContext : function(){
@@ -332,7 +342,7 @@ var SE = { // School Explorer
 		$.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
 	},
 	
-	viewSchoolOnSV : function(elemID, centerLoc){
+	renderSchoolOnSV : function(elemID, centerLoc){
 		var schoolpano = new google.maps.StreetViewPanorama(document.getElementById(elemID), {
 			position : centerLoc,
 			pov: {
@@ -349,7 +359,7 @@ var SE = { // School Explorer
 		$('#' + elemID).slideDown('slow');
 	},
 
-	viewSchoolNearby : function(elemID, lat, lng){
+	renderSchoolNearby : function(elemID, lat, lng){
 
 		// now, get the schools nearby things via LinkedGeoData
 		$.getJSON(SE.buildNearPOIURI(lat, lng, SE.G.contextRadius), function(data, textStatus){
@@ -357,7 +367,7 @@ var SE = { // School Explorer
 				var buf = [""];
 				var rows = data.data;
 
-				buf.push("<div class='nearby_pois'><h3>Nearby</h3>");
+				buf.push("<div class='nearby_pois'>");
 				if(rows.length > 0){
 					buf.push("<div class='nearby_pois'><ul>");
 					for(i in rows) {
@@ -386,7 +396,7 @@ var SE = { // School Explorer
 				$('#' + elemID).slideDown('slow');
 			}
 			else {
-				buf.push("<div class='nearby_pois'><h3>Nearby</h3><p>Sorry, didn't find anything nearby ...</p></div>");
+				buf.push("<div class='nearby_pois'><p>Sorry, didn't find anything nearby ...</p></div>");
 				$('#' + elemID).html(buf.join(""));
 				$('#' + elemID).slideDown('slow');
 			}
@@ -436,6 +446,7 @@ var SE = { // School Explorer
 		}
 		infowindow.setContent(iwcontent);
 		infowindow.open(SE.G.smap, marker);
+		$('#' + SE.C.CLOSE_ALL_INFO_WINDOW).show();
 		return infowindow;
 	},
 		
@@ -565,9 +576,9 @@ var SE = { // School Explorer
 					buf.push("</div>"); // EO age groups
 				}
 				else {
-					buf.push("No demographics available for this area, sorry ...</div>"); // EO age groups
+					buf.push("<p class='no_stats'>No demographics available for this area, sorry ...</p></div>"); // EO age groups
 				}
-				buf.push("<div class='school_more'><a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + school["lat"].value  + "&lon=" + school["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>Nearby</a> | <a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
+				buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
 				buf.push("</div>"); // EO school_info 
 				callback(buf.join(""));
 			});
