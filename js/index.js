@@ -67,21 +67,29 @@ var SE = { // School Explorer
 	},
 	
 	
+	// add general overview stats/diagram based on:
+	// http://en.wikipedia.org/wiki/Category:Schools_in_the_Republic_of_Ireland and
+	// http://en.wikipedia.org/wiki/National_school_%28Ireland%29
+	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
 		$("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
+		SE.initSchoolContext();
+		SE.initLegend();
+		SE.handleInteraction();
+	},
+	
+	initSchoolContext : function(){
 		$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
 				value: SE.C.DEFAULT_SEARCH_RADIUS,
 				min: SE.C.MIN_SEARCH_RADIUS,
 				max: SE.C.MAX_SEARCH_RADIUS,
 				slide: function(event, ui) {
-						SE.G.contextRadius =  ui.value;
-						$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html(ui.value + "m");
+					SE.G.contextRadius =  ui.value;
+					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than " + ui.value + "m");
 				}
 		});
-		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html(SE.C.DEFAULT_SEARCH_RADIUS + "m");
-		SE.initLegend();
-		SE.handleInteraction();
+		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than " + SE.C.DEFAULT_SEARCH_RADIUS + "m");	
 	},
 	
 	initLegend : function(){
@@ -134,11 +142,10 @@ var SE = { // School Explorer
 		$('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function(){
 			var schoolID = $(this).attr('about');
 			var el = $(this);
-			
 			SE.G.currentSchoolID = schoolID;
 			
-			// reset school context view
-			$('#' + SE.C.NEARBY_ELEMENT_ID).slideUp("slow");
+			// show the context of the school (street view and nearby POIs)
+			SE.showSchoolContext(schoolID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
 			
 			// stop bouncing of all markers and start bouncing of associated marker:
 			$.each(SE.G.mlist, function(sID, marker){
@@ -152,18 +159,14 @@ var SE = { // School Explorer
 				SE.G.iwlist[s["school"].value] = SE.addSchoolInfo(s["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
 			});
 			
-			// check if school has already been visited via listing and show details if not ...
-			if($.inArray(schoolID, SE.G.vlist) < 0 ) { // not yet visited
-				// get school's enrolments:
+			// handle first time visit via listing
+			if($.inArray(schoolID, SE.G.vlist) < 0 ) { // school has not yet been visited via listing
+				// get school's enrolments and display totals as well as mark school listing item as visited
 				$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { 
 					var total = 0;
-					var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
-					var schoolSVMapID = schoolID.substring(schoolID.lastIndexOf("/") + 1) + '_map';
-					
 					$.each(data.data, function(i, grade){
 						total = total + parseInt(grade.numberOfStudents.value);
 					});
-//					el.append("<div>" + total + " pupils</div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + " | <a href='" + SE.C.LINKEDGEODATA_API_BASE + "lat=" + SE.G.slist[schoolID]["lat"].value  + "&lon=" + SE.G.slist[schoolID]["long"].value + "&zoom=15' target='_blank' title='Nearby things via OpenStreetMap'>OpenStreetMap</a></div>");
 					$('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
 					// mark school visited:
@@ -172,14 +175,7 @@ var SE = { // School Explorer
 					el.css('background-repeat', 'no-repeat');
 					el.css('color', '#aeaeae');
 					el.css('border', '1px solid #f0f0f0');
-					SE.G.vlist.push(schoolID); 
-				
-					// add with street view and nearby POIs for  school:
-					SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
-					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
-					$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
-					SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
-					$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
+					SE.G.vlist.push(schoolID);  // add school to visited list
 				});
 			}
 		});
@@ -198,25 +194,9 @@ var SE = { // School Explorer
  				infowindow.close();
     		});
 		});
-		
-		// show nearby via OSM
-		// $('.' + SE.C.SHOW_NEARBY).live('click', function(){
-		// 	var osmLink = $(this).attr('href');
-		// 	$('#osm_target').dialog({
-		// 		height: 800,
-		// 		modal: true,
-		// 		title: 'Nearby on OpenStreetMap ...',
-		// 		open: function(){
-		// 			$(this).load(osmLink);
-		// 			$(this).dialog("open"); 
-		// 			return true;
-		// 		}
-		// 	});
-		// });
-
 	},
 	
-	showSchools  : function() {
+	showSchools : function() {
 		var a = $('#' + SE.C.ADDRESS_FIELD_ID).val();
 		var r = $('#' + SE.C.RELIGION_FIELD_ID).val();
 		var g = $('#' + SE.C.GENDER_FIELD_ID).val();
@@ -245,7 +225,6 @@ var SE = { // School Explorer
 					for(i in rows) {
 						var row = rows[i];
 						var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
-						var schoolSVMapID = row["school"].value.substring(row["school"].value.lastIndexOf("/")  + 1 )  + '_map'; // http://data-gov.ie/school/64350N -> 64350N_map
 
 						SE.G.slist[row["school"].value] = row; // set up school look-up table
 						
@@ -255,7 +234,7 @@ var SE = { // School Explorer
 						else {
 							buf.push("<div class='school_lst hidden' about='" + row["school"].value + "'>");
 						}
-						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div><div class='school_sv_map' id='" + schoolSVMapID + "'></div>");
+						buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
 						buf.push("</div>");
 						SE.addSchoolMarker(row, schoolSymbol);
 					}
@@ -266,6 +245,19 @@ var SE = { // School Explorer
 		});
 	},
 	
+
+	showSchoolContext : function(schoolID, lat, lng){
+		var schoolLoc = new google.maps.LatLng(lat, lng);
+		SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
+		// hide the nearby content and show slider
+		$('#' + SE.C.NEARBY_ELEMENT_ID).slideUp("slow");
+		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
+		$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
+		// now trigger LGD look-up and make the school listing fit:
+		SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
+		$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
+	},
+
 	// for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
 	buildNearSchoolsURI : function(lat, lng, religion, gender){
 		return (religion == "") ? SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + gender : SE.C.NEAR_API_BASE + lat + "," + lng + "&religion=" + religion + "&gender=" + gender;

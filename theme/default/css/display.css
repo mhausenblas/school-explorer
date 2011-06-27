@@ -249,7 +249,7 @@ float: left;
 #school_sv_map{
 display: none;
 float: left;
-margin: 50px 0 0 0;
+margin: 50px 0 20px 0;
 width: 300px;
 height: 250px;
 box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
@@ -260,7 +260,7 @@ box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 #school_nearby{
 display: none;
 clear: left;
-margin: 50px 0 0 0;
+margin: 5px 0 0 0;
 width: 300px;
 box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
 -moz-box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);
@@ -274,11 +274,11 @@ clear:left;
 
 #school_nearby_slider{
 clear:left;
-margin: .5em 0 0 0;
 }
 
 #school_nearby_radius{
-font-size: 12pt;
+font-size: 8pt;
+margin: 0 0 5px 0;
 }
 
 
