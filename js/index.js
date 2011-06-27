@@ -118,6 +118,8 @@ var SE = { // School Explorer
 	
 	// TODO: enable bookmark-able URIs through window.location (use for examples)
 	
+	// TODO: make legend filter-able
+	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
 		$("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
@@ -390,6 +392,7 @@ var SE = { // School Explorer
 	},
 	
 	renderSchoolOnSV : function(elemID, centerLoc){
+		// TODO: if no SV is available, show something else (?)
 		var schoolpano = new google.maps.StreetViewPanorama(document.getElementById(elemID), {
 			position : centerLoc,
 			pov: {
