@@ -28,13 +28,14 @@ var SE = { // School Explorer
 		RESULT_ELEMENT_ID : "school_results", // the @id of the legend
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
+		SCHOOL_CONTEXT_ELEMENT_ID : "school_context", // the @id of the school context element (container for SV map and nearby)
 		SV_MAP_ELEMENT_ID : "school_sv_map", // the @id of the SV map
 		NEARBY_ELEMENT_ID : "school_nearby", // the @id of the nearby element
 		NEARBY_SLIDER_ELEMENT_ID : "school_nearby_slider", // the @id of the nearby slider
 		NEARBY_RADIUS_ELEMENT_ID : "school_nearby_radius", // the @id of the nearby radius
-		DEFAULT_SEARCH_RADIUS : 1000, // default ...
-		MIN_SEARCH_RADIUS : 200, // ... min ...
-		MAX_SEARCH_RADIUS : 5000, // ... max radius for the search
+		DEFAULT_SEARCH_RADIUS : 500, // default ...
+		MIN_SEARCH_RADIUS : 50, // ... min ...
+		MAX_SEARCH_RADIUS : 2000, // ... max radius for the search
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
 		SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
 		EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
@@ -62,8 +63,8 @@ var SE = { // School Explorer
 		iwlist : {}, // 'associative' array (school ID -> info window)*
 		vlist : [], //  array of 'visited' schools (schoolID)*
 		chartAPI : null, // the jgcharts object http://www.maxb.net/scripts/jgcharts
-		contextRadius : 1000, // in m ... used for querying the LGD POIs
-		currentSchoolID : 0 // selected school
+		contextRadius : 500, // in m ... used for querying the LGD POIs
+		currentSchoolID : null // selected school
 	},
 	
 	
@@ -85,11 +86,17 @@ var SE = { // School Explorer
 				min: SE.C.MIN_SEARCH_RADIUS,
 				max: SE.C.MAX_SEARCH_RADIUS,
 				slide: function(event, ui) {
-					SE.G.contextRadius =  ui.value;
-					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than " + ui.value + "m");
+					SE.G.contextRadius =  ui.value; // get the current selected slider value (== search radius for nearby POIs in meter)
+					$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than <strong>" + ui.value + "m</strong>:");
+				},
+				change: function(event, ui) {
+					if(SE.G.currentSchoolID){ // update context of current selected school
+						SE.showSchoolContext(SE.G.currentSchoolID);
+					}
 				}
+				
 		});
-		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than " + SE.C.DEFAULT_SEARCH_RADIUS + "m");	
+		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
 	},
 	
 	initLegend : function(){
@@ -145,7 +152,7 @@ var SE = { // School Explorer
 			SE.G.currentSchoolID = schoolID;
 			
 			// show the context of the school (street view and nearby POIs)
-			SE.showSchoolContext(schoolID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
+			SE.showSchoolContext(schoolID);
 			
 			// stop bouncing of all markers and start bouncing of associated marker:
 			$.each(SE.G.mlist, function(sID, marker){
@@ -180,8 +187,7 @@ var SE = { // School Explorer
 			}
 		});
 		
-		// TODO: when context radius changes, perform new LGD search and refresh school_nearby
-		
+
 		// reset animated marker
 		$('#' + SE.C.STOP_BOUNCE).live('click', function(){
 			$.each(SE.G.mlist, function(sID, marker){
@@ -193,6 +199,10 @@ var SE = { // School Explorer
 			$.each(SE.G.iwlist, function(sID, infowindow){
  				infowindow.close();
     		});
+			// and also stop the bouncing ...
+			$.each(SE.G.mlist, function(sID, marker){
+ 				marker.setAnimation(null);
+    		});
 		});
 	},
 	
@@ -202,6 +212,8 @@ var SE = { // School Explorer
 		var g = $('#' + SE.C.GENDER_FIELD_ID).val();
 		
 		$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
+		
+		SE.hideSchoolContext(); // make sure the previous school context is reset
 		
  		SE.position2Address(a, function(lat, lng){ // get the location from address and show the 'nearby' schools
 			if(SE.C.DEBUG){
@@ -245,17 +257,25 @@ var SE = { // School Explorer
 		});
 	},
 	
-
-	showSchoolContext : function(schoolID, lat, lng){
-		var schoolLoc = new google.maps.LatLng(lat, lng);
+	showSchoolContext : function(schoolID){
+		var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
 		SE.viewSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
-		// hide the nearby content and show slider
-		$('#' + SE.C.NEARBY_ELEMENT_ID).slideUp("slow");
+		SE.nearbyBusy();
+		$('#' +  SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
 		$('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
 		$('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
 		// now trigger LGD look-up and make the school listing fit:
 		SE.viewSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
 		$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "60%");
+	},
+	
+	hideSchoolContext : function(){
+		$('#' +  SE.C.SCHOOL_CONTEXT_ELEMENT_ID).slideUp();
+		$('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "100%");
+	},
+	
+	nearbyBusy : function(){
+		$('#' + SE.C.NEARBY_ELEMENT_ID).html("<div id='nearby_busy'><img src='../img/busy.gif' alt='busy'/><div>Retrieving data from <a href='http://linkedgeodata.org/About' target='_blank'>LinkedGeoData</a> ...</div></div>");
 	},
 
 	// for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
@@ -337,25 +357,36 @@ var SE = { // School Explorer
 				var buf = [""];
 				var rows = data.data;
 
-				buf.push("<div class='nearby_pois'><h3>Nearby</h3><ul>");
-				for(i in rows) {
-					var row = rows[i];
-					var poiType = "";
+				buf.push("<div class='nearby_pois'><h3>Nearby</h3>");
+				if(rows.length > 0){
+					buf.push("<div class='nearby_pois'><ul>");
+					for(i in rows) {
+						var row = rows[i];
+						var poiType = "";
 
-					buf.push("<li><a href='" + row["poi"].value +"' target='_blank'>" + row["poi_label"].value + "</a>");
-					if(row["poi_type"]) {
-						poiType = row["poi_type"].value;
-						buf.push(" a <a href='" + poiType +"' target='_blank'>" + poiType.substring(poiType.lastIndexOf("/") + 1).toLowerCase() + "</a>");
-					}
-					if(row["sameas"].value) {
-						buf.push(", see also <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
-						if(SE.C.DEBUG){
-							console.log("For location: [" + lat + "," + lng + "] I found :" + row["sameas"].value);
+						buf.push("<li><a href='" + row["poi"].value +"' target='_blank'>" + row["poi_label"].value + "</a>");
+						if(row["poi_type"]) {
+							poiType = row["poi_type"].value;
+							buf.push(" a <a href='" + poiType +"' target='_blank'>" + poiType.substring(poiType.lastIndexOf("/") + 1).toLowerCase() + "</a>");
 						}
+						if(row["sameas"].value) {
+							buf.push(", see also <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
+							if(SE.C.DEBUG){
+								console.log("For location: [" + lat + "," + lng + "] I found :" + row["sameas"].value);
+							}
+						}
+						buf.push("</li>");
 					}
-					buf.push("</li>");
+					buf.push("</ul></div>");
 				}
-				buf.push("</ul>");
+				else{
+					buf.push("<p>Sorry, didn't find anything nearby ...</p></div>");
+				}
+				$('#' + elemID).html(buf.join(""));
+				$('#' + elemID).slideDown('slow');
+			}
+			else {
+				buf.push("<div class='nearby_pois'><h3>Nearby</h3><p>Sorry, didn't find anything nearby ...</p></div>");
 				$('#' + elemID).html(buf.join(""));
 				$('#' + elemID).slideDown('slow');
 			}
@@ -375,6 +406,7 @@ var SE = { // School Explorer
 			SE.renderSchool(school, function(iwcontent){
 				SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
 			});
+			SE.showSchoolContext(school["school"].value);
 		});
 	},
 	

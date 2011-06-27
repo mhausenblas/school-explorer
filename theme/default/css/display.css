@@ -281,10 +281,19 @@ font-size: 8pt;
 margin: 0 0 5px 0;
 }
 
+#nearby_busy{
+margin: auto 0;
+text-align: right;
+font-size: 7pt;
+}
 
 .nearby_pois{
 font-size: 80%;
 padding: .5em;
+}
+
+.nearby_pois h3{
+font-size: 11pt;
 }
 
 
