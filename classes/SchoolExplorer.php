@@ -443,10 +443,13 @@ EOD;
 
         $enrolmentGraph = <<<EOD
             ?observation
-                DataGov:numberOfStudents ?numberOfStudents ;
                 DataGov:school ?school ;
-                DataGov:schoolGrade ?schoolGrade ;
                 a qb:Observation .
+
+             ?observation ?numberOfStudentsURI ?numberOfStudents .
+             ?numberOfStudentsURI a qb:MeasureProperty.
+             ?numberOfStudentsURI rdfs:label ?numberOfStudentsLabel .
+
 EOD;
 
         switch($this->config['apiRequest']['path']) {
@@ -520,14 +523,14 @@ EOD;
             case 'enrolment':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?schoolGrade ?numberOfStudents
+                        SELECT DISTINCT ?numberOfStudents ?numberOfStudentsURI ?numberOfStudentsLabel
                         WHERE {
                             $schoolGraph
                             FILTER (<$schoolId> = ?school)
 
                             $enrolmentGraph
                         }
-
+                        ORDER BY str(?numberOfStudentsURI)
 EOD;
                     $uri = $this->buildQueryURI($query);
 
