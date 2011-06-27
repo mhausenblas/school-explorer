@@ -24,7 +24,9 @@ var SE = { // School Explorer
 		MAX_SCHOOL_LISTING : 10, // determines how many schools are rendered below the map
 		MAP_TYPE : google.maps.MapTypeId.ROADMAP, // the type of the map, see http://code.google.com/apis/maps/documentation/javascript/reference.html#MapTypeId
 
-		CONTAINER_ELEMENT_ID : "content", // the @id of the map and details container
+		CONTAINER_ELEMENT_ID : "content", // the @id of the overall container incl. the heading
+		CONTAINER_INNER_ELEMENT_ID : "content_inner", // the @id of the inner container
+		SCHOOLS_OVERVIEW_ELEMENT_ID : "schools_overview", // the @id of the school overview container
 		RESULT_ELEMENT_ID : "school_results", // the @id of the legend
 		LEGEND_ELEMENT_ID : "school_legend", // the @id of the legend
 		MAP_ELEMENT_ID : "school_map", // the @id of the map
@@ -71,6 +73,17 @@ var SE = { // School Explorer
 	// add general overview stats/diagram based on:
 	// http://en.wikipedia.org/wiki/Category:Schools_in_the_Republic_of_Ireland and
 	// http://en.wikipedia.org/wiki/National_school_%28Ireland%29
+	
+	// static rendering of schools and some examples ...
+	renderSchoolOverview : function(){
+		var tmp = $('<div id="' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID +  '"/>');
+		
+		tmp.append("<h3>Overview</h3>");
+				
+		
+		
+		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
+	},
 	
 	go : function(){
 		SE.G.chartAPI = new jGCharts.Api(); 
@@ -221,6 +234,7 @@ var SE = { // School Explorer
 		var r = $('#' + SE.C.RELIGION_FIELD_ID).val();
 		var g = $('#' + SE.C.GENDER_FIELD_ID).val();
 		
+		$('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
 		$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
 		
 		SE.hideSchoolContext(); // make sure the previous school context is reset
@@ -596,6 +610,7 @@ var SE = { // School Explorer
 
 $(document).ready(function(){
 	if ($("#form_search")) {
+		SE.renderSchoolOverview();
 		SE.go();
 		// SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
