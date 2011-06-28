@@ -118,7 +118,9 @@ var SE = { // School Explorer
 		})));
 		tmp.append(tmpf);
 		
-		tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3><p>In preparation ... use the search functionality meanwhile!</p>');
+		tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3>');
+		tmp.append('<div class="example_school"><a href="school#63000E" target="_blank"><img src="../img/ex1.png" alt="picture of Presentation Secondary School"/></a><p>Presentation Secondary School, Galway</p></div>');
+		tmp.append('<div class="example_school"><a href="school#60820E" target="_blank"><img src="../img/ex2.png" alt="picture of Loreto College"/></a><p>Loreto College, Dublin 2</p></div>');
 		
 		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
 		
