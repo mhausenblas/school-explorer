@@ -471,12 +471,18 @@ var SE = { // School Explorer
 	},
 	
 	renderSchool : function(school, callback){
+		
+		// TODO: check values and only display if present
 		var buf = ["<div class='school_info'>"];
 		buf.push("<h2>" + school["label"].value + "</h2>");
 		buf.push("<div class='summary'>");
-		buf.push("<span class='head'>Address:</span> " + school["address1"].value + " " + school["address2"].value + ", " + school["region_label"].value + " | ");
-		buf.push("<span class='head'>Religion:</span> " + school["religion_label"].value.toLowerCase() + " | ");
-		buf.push("<span class='head'>Gender:</span> " + school["gender_label"].value.toLowerCase());
+		buf.push("<span class='head'>Address:</span> " + school["address1"].value);
+		if(school["address2"]) buf.push(" " + school["address2"].value);
+		if(school["region_label"]) buf.push(", " + school["region_label"].value + " | ");
+		else buf.push(" | ");
+
+		if(school["religion_label"]) buf.push("<span class='head'>Religion:</span> " + school["religion_label"].value.toLowerCase() + " | ");
+		if(school["gender_label"]) buf.push("<span class='head'>Gender:</span> " + school["gender_label"].value.toLowerCase());
 		buf.push("</div>"); // EO summary
 		
 		callback(buf.join("")); // immediatly render what we have so far as rendering the stats might take a bit
@@ -571,30 +577,45 @@ var SE = { // School Explorer
 		buf.push("<div class='enrolment'>");
 		var xdata = [], ydata = [];
 		var total = 0;
+		var totalCalculated = 0;
+		var totalGirls = 0;
+		var totalBoys = 0;
 		var schoolID = school["school"].value;
 		
-		// fill the chart's data via API
+		// fill the two charts with data via API
 		$.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
 			$.each(data.data, function(i, grade){
-				xdata.push(SE.cleangrades(grade.schoolGrade.value)); // TODO: replace w/ label once API offers it
-				ydata.push(parseInt(grade.numberOfStudents.value));
-				total = total + parseInt(grade.numberOfStudents.value);
+				var g = SE.cleangrades(grade.numberOfStudentsURI.value, grade.schoolGrade.value);
+				if(g){ // we have a valid grade (exluding totals such as boys, girls, etc.)
+					xdata.push(g);
+					ydata.push(parseInt(grade.numberOfStudents.value));
+					totalCalculated = totalCalculated + parseInt(grade.numberOfStudents.value);
+				}
+				else{ // extracting totals
+					if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-students") total = parseInt(grade.numberOfStudents.value);
+					if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-girl-students") totalGirls = parseInt(grade.numberOfStudents.value);
+					if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-boy-students") totalBoys = parseInt(grade.numberOfStudents.value);
+				}
 			});
 			if(SE.C.DEBUG){
 				console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
 			}
-			buf.push($('<div>').html($('<img>').attr('src', SE.G.chartAPI.make({ 
+			buf.push($('<div />').html($('<img style="margin: 0 10px 10px 0">').attr('src', SE.G.chartAPI.make({ 
 				data : ydata,
 				title : 'Enrolment',
 				title_color : '111', 
 				title_size : 12,
 				legend : ['pupils'], 
 				axis_labels : xdata,
-				size : '220x150', 
+				size : '240x150', 
 				type : 'bvg', 
-				colors : ['009933']
+				colors : ['009933'],
+				bar_width : 25,
+				// bar_spacing : 15
 			}))).html());
-			buf.push("<div class='chart_more'>Total: " +  total + " pupils</div>"); // EO enrolment
+			buf.push("<div class='chart_more'>Total: " +  total + " (" + totalCalculated +") | Girls: "  +  totalGirls + " | Boys: " +  totalBoys + "</div>");
+			buf.push("<div class='chart_more'>Year: 2010 | Source: <a href='http://www.education.ie/' target='_blank'>Dept. of Education</a></div>"); //  TODO: check if the year is correct
+
 			buf.push("</div>"); // EO enrolment
 			
 			callback(buf.join("")); // immediatly render what we have so far 
@@ -604,15 +625,17 @@ var SE = { // School Explorer
 			buf.push("<div class='agegroups'>");
 			$.getJSON(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID), function(data) { // get age groups near the school
 				if(data.data.length > 0){
+					totalCalculated = 0;
 					$.each(data.data, function(i, agegroup){
 						xdata.push(agegroup.age_label.value + 'y');
 						ydata.push(parseInt(agegroup.population.value));
+						totalCalculated = totalCalculated + parseInt(agegroup.population.value);
 					});
 					if(SE.C.DEBUG){
 						console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
 					}
 					SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
-					buf.push($('<div>').html($('<img>').attr('src', SE.G.chartAPI.make({ 
+					buf.push($('<div />').append($('<img style="margin: 0 0 10px 0">').attr('src', SE.G.chartAPI.make({ 
 						data : ydata,
 						title       : 'Demographics',
 						title_color : '111', 
@@ -623,6 +646,9 @@ var SE = { // School Explorer
 						type : 'bvg',
 						colors : ['003399']
 					}))).html());
+					buf.push("<div class='chart_more'>Total: " + totalCalculated + "</div>");
+					buf.push("<div class='chart_more'>Year: 2006 | Source: <a href='http://cso.ie/' target='_blank'>CSO</a>, Census</div>");
+					
 					buf.push("</div>"); // EO age groups
 				}
 				else {
@@ -635,12 +661,14 @@ var SE = { // School Explorer
 		});
 	},
 	
-	cleangrades : function(grade) {
-		grade = grade.substring(grade.lastIndexOf("/"));
-		if(grade.indexOf('FirstYear') > 0) return "1st";
-		if(grade.indexOf('SecondYear') > 0) return "2nd";
-		if(grade.indexOf('ThirdYear') > 0) return "3rd";
-		if(grade.indexOf('All_Excluding_TY') > 0) return "other";
+	cleangrades : function(gradeURI, grade) {
+		if(gradeURI.indexOf('st-') > 0 | gradeURI.indexOf('nd-')  > 0 | gradeURI.indexOf('rd-')  > 0 | gradeURI.indexOf('th-')  > 0) {
+			grade = grade.replace(/number of (.+) year students/i, "$1");
+		}
+		else {
+			grade = null;
+		}
+		return grade;
 	}
 };
 
