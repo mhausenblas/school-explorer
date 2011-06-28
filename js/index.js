@@ -119,8 +119,10 @@ var SE = { // School Explorer
 		tmp.append(tmpf);
 		
 		tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3>');
+		// Galway, catholic, mixed:
 		tmp.append('<div class="example_school"><a href="school#63000E" target="_blank"><img src="../img/ex1.png" alt="picture of Presentation Secondary School"/></a><p>Presentation Secondary School, Galway</p></div>');
-		tmp.append('<div class="example_school"><a href="school#60820E" target="_blank"><img src="../img/ex2.png" alt="picture of Loreto College"/></a><p>Loreto College, Dublin 2</p></div>');
+		// Dublin, catholic, girls: - TODO: check why this is not working ....
+		tmp.append('<div class="example_school"><a href="school#60890C" target="_blank"><img src="../img/ex2.png" alt="picture of St Louis High School"/></a><p>St Louis High School, Dublin 6</p></div>');
 		
 		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
 		
@@ -179,11 +181,25 @@ var SE = { // School Explorer
 			if(data.data) {
 				var school =  data.data[0];
 				var schoolID = school["school"].value;
+				var targetr = "Any";
+				var targetg = "Mixed";
 				
 				$('#' + SE.C.ADDRESS_FIELD_ID).val(school["address1"].value + ", " + school["address2"].value);
-				// TODO: fix this - should translate the school["religion"].value and school["gender"].value to <select> values
-				$('#' + SE.C.RELIGION_FIELD_ID).val("Any");
-				$('#' + SE.C.GENDER_FIELD_ID).val("Mixed");
+				
+				// TODO: implement this proerply - should translate the school["religion"].value and school["gender"].value to <select> values:
+				switch(school["religion"].value){
+					case "http://data-gov.ie/school-religion/catholic":
+						targetr = "Catholic";
+						break;
+				}
+				switch(school["gender"].value){
+					case "http://education.data.gov.uk/ontology/school#Gender_Boys":
+						targetg = "Boys";
+						break;
+					case "http://education.data.gov.uk/ontology/school#Gender_Girls":
+						targetg = "Girls";
+						break;
+				}
 				
 				// get schools around the selected school
 				$.getJSON(SE.buildNearSchoolsURI(school["lat"].value, school["long"].value, "", "Gender_Mixed"), function(data, textStatus){
