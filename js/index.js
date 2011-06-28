@@ -13,6 +13,11 @@ var SE = { // School Explorer
 	C : { // constant SE-wide values
 		DEBUG : true,
 		
+		SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
+		
+		SCHOOL_LISTING_MODE : "SCHOOL LISTING", // render a list of schools; a particular school can be selected
+		SCHOOL_DETAIL_MODE : "SCHOOL DETAIL", // render one school (note: requires the school URI, such as http://data-gov.ie/school/63000E) 
+		
 		NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
 		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
@@ -114,10 +119,11 @@ var SE = { // School Explorer
 		tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3><p>In preparation ... use the search functionality meanwhile!</p>');
 		
 		$('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
+		
+		
+		//	Examples: http://localhost:8888/school#71330V
 	},
-	
-	// TODO: enable bookmark-able URIs through window.location (use for examples)
-	
+		
 	// TODO: make legend filter-able
 	
 	go : function(){
@@ -126,6 +132,36 @@ var SE = { // School Explorer
 		SE.initSchoolContext();
 		SE.initLegend();
 		SE.handleInteraction();
+		
+		if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
+			$('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
+			$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
+			$.getJSON(SE.C.INFO_API_BASE + encodeURIComponent(SE.G.currentSchoolID), function(data, textStatus){
+				if(data.data) {
+					var school =  data.data[0];
+					var schoolID = school["school"].value;
+					var schoolSymbol = SE.drawMarker(school["label"].value, school["religion"].value, school["gender"].value);
+					// init school look-up table
+					SE.G.slist[schoolID] = school;
+					// create a map ...
+					SE.initMap(school["lat"].value, school["long"].value);
+					$('#' + SE.C.MAP_ELEMENT_ID).css("width", "550px");
+					$('#' + SE.C.MAP_ELEMENT_ID).css("float", "left");
+					$('#' + SE.C.MAP_ELEMENT_ID).css("margin", "0 10px 0 0");
+					$('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).css("margin", "0");
+					$('#' + SE.C.SV_MAP_ELEMENT_ID).css("margin", "0 0 20px 0");
+					
+					// ... with a marker for the school ...
+					SE.addSchoolMarker(school, schoolSymbol);
+					// ... and show the context ...
+					SE.showSchoolContext(schoolID);
+					// ... as well as activate associated info window via school look-up table
+					SE.renderSchool(school, function(iwcontent){
+						SE.G.iwlist[schoolID] = SE.addSchoolInfo(school["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
+					});
+				}
+			});
+		}
 	},
 	
 	initSchoolContext : function(){
@@ -268,7 +304,7 @@ var SE = { // School Explorer
 		var a = $('#' + SE.C.ADDRESS_FIELD_ID).val();
 		var r = $('#' + SE.C.RELIGION_FIELD_ID).val();
 		var g = $('#' + SE.C.GENDER_FIELD_ID).val();
-		
+				
 		$('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
 		$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
 		
@@ -278,8 +314,7 @@ var SE = { // School Explorer
 			if(SE.C.DEBUG){
 				console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
 				console.log("You asked for: religion: [" + r + "] and gender: [" + g + "]");
-			}
-			
+			}		
 			// now, get the schools around this address
 			$.getJSON(SE.buildNearSchoolsURI(lat, lng, r, g), function(data, textStatus){
 				if(data.data) {
@@ -310,7 +345,6 @@ var SE = { // School Explorer
 						SE.addSchoolMarker(row, schoolSymbol);
 					}
 					$('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
-					// $('#' + SE.C.RESULT_ELEMENT_ID).prepend("<h2>Details</h2>");
 				}
 			});
 		});
@@ -471,9 +505,10 @@ var SE = { // School Explorer
 	},
 	
 	renderSchool : function(school, callback){
-		
-		// TODO: check values and only display if present
 		var buf = ["<div class='school_info'>"];
+		
+		SE.setSchoolURI(school["school"].value);
+		
 		buf.push("<h2>" + school["label"].value + "</h2>");
 		buf.push("<div class='summary'>");
 		buf.push("<span class='head'>Address:</span> " + school["address1"].value);
@@ -488,6 +523,28 @@ var SE = { // School Explorer
 		callback(buf.join("")); // immediatly render what we have so far as rendering the stats might take a bit
 		
 		SE.renderStats(school, buf, callback); // render the enrollment stats
+	},
+	
+	setSchoolURI : function(schoolID){
+		var currentURL = document.URL;
+		currentURL = currentURL.substring(0, currentURL.indexOf("#"));
+		window.location = currentURL + "#" + schoolID.substring(schoolID.lastIndexOf("/") + 1 );
+	},
+	
+	determineRenderMode : function(){
+		var currentURL = document.URL;
+		var hashPos = currentURL.indexOf("#");
+		var schoolID = "";
+		
+		if(hashPos >= 0){ // trigger single school rendering for a hash URI such as http://school-explorer.data-gov.ie/school#63000E
+			SE.G.currentMode = SE.C.SCHOOL_DETAIL_MODE;
+			schoolID = currentURL.substring(hashPos + 1); // extract the school identifier, resulting in 63000E
+			SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + schoolID;  // assemble school URI, resulting in  http://data-gov.ie/school/63000E
+		}
+		else{ // trigger school listing
+			SE.G.currentMode = SE.C.SCHOOL_LISTING_MODE;
+		}
+		if(SE.C.DEBUG) console.log("School explorer opening in " + SE.G.currentMode + " mode ..."); 
 	},
 	
 	addSchoolInfo : function(schoolID, marker, iwcontent){
@@ -674,8 +731,11 @@ var SE = { // School Explorer
 
 $(document).ready(function(){
 	if ($("#form_search")) {
-		SE.renderSchoolOverview();
-		SE.go();
+		SE.renderSchoolOverview(); // show some overview stats and examples
+		SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
+		SE.go(); // start interaction
+		
+		// TESTS:
 		// SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
 		// $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));

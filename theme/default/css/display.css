@@ -170,6 +170,7 @@ display: none;
 .school_info {
 padding:0;
 height: 280px;
+overflow: auto;
 }
 
 .school_info h2 {
@@ -194,6 +195,7 @@ margin: 0 0 3px 0;
 padding: 2px;
 float: left;
 font-size: 80%;
+width: 500px;
 }
 
 .chart_more{
