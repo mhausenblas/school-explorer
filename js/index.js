@@ -42,7 +42,7 @@ var SE = { // School Explorer
 		NEARBY_SLIDER_ELEMENT_ID : "school_nearby_slider", // the @id of the nearby slider
 		NEARBY_RADIUS_ELEMENT_ID : "school_nearby_radius", // the @id of the nearby radius
 		SCHOOL_INFO_ELEMENT_CLASS : "school_info", // the @class of a school info window
-		DEFAULT_SEARCH_RADIUS : 100, // default ...
+		DEFAULT_SEARCH_RADIUS : 80, // default ...
 		MIN_SEARCH_RADIUS : 50, // ... min ...
 		MAX_SEARCH_RADIUS : 2000, // ... max radius for the search
 		DETAILS_ELEMENT_ID : "school_details", // the @id of the details
@@ -179,6 +179,12 @@ var SE = { // School Explorer
 			if(data.data) {
 				var school =  data.data[0];
 				var schoolID = school["school"].value;
+				
+				$('#' + SE.C.ADDRESS_FIELD_ID).val(school["address1"].value + ", " + school["address2"].value);
+				// TODO: fix this - should translate the school["religion"].value and school["gender"].value to <select> values
+				$('#' + SE.C.RELIGION_FIELD_ID).val("Any");
+				$('#' + SE.C.GENDER_FIELD_ID).val("Mixed");
+				
 				// get schools around the selected school
 				$.getJSON(SE.buildNearSchoolsURI(school["lat"].value, school["long"].value, "", "Gender_Mixed"), function(data, textStatus){
 					if(data.data) {
@@ -569,6 +575,7 @@ var SE = { // School Explorer
 		else{ // trigger school listing
 			SE.G.currentMode = SE.C.SCHOOL_LISTING_MODE;
 			window.location = SE.C.BASE_URI + "#";
+			SE.renderSchoolOverview(); // show some overview stats and examples
 		}
 		if(SE.C.DEBUG) console.log("School explorer opening in " + SE.G.currentMode + " mode ..."); 
 	},
@@ -756,7 +763,6 @@ var SE = { // School Explorer
 
 $(document).ready(function(){
 	if ($("#form_search")) {
-		SE.renderSchoolOverview(); // show some overview stats and examples
 		SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
 		SE.go(); // start interaction
 		
