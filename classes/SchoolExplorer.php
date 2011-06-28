@@ -394,7 +394,7 @@ EOD;
     {
         $apiEKV = $this->config['apiRequest']['query'];
 
-        $query = '';
+        $query = $bindSchool = '';
 
         //TODO: Make this more abstract
         $location   = $this->getLocation($apiEKV);
@@ -403,25 +403,34 @@ EOD;
         $religion   = $this->getReligion($apiEKV);
         $gender     = $this->getGender($apiEKV);
 
+        if (!empty($schoolId)) {
+            $school = "<$schoolId>";
+            $bindSchool = "BIND ($school AS ?school)";
+        } else {
+            $school = '?school';
+        }
+
         $schoolGraph = <<<EOD
-            ?school
+            $school
                 a sch-ont:School ;
                 rdfs:label ?label .
 
-            OPTIONAL { ?school sch-ont:address [ sch-ont:address1 ?address1 ] . }
-            OPTIONAL { ?school sch-ont:address [ sch-ont:address2 ?address2 ] . }
-            OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
-            OPTIONAL { ?school sch-ont:address [ sch-ont:region [ skos:prefLabel ?region_label ] ] . }
-            OPTIONAL { ?school sch-ont:address [ sch-ont:region ?region ] . }
+            OPTIONAL { $school sch-ont:address [ sch-ont:address1 ?address1 ] . }
+            OPTIONAL { $school sch-ont:address [ sch-ont:address2 ?address2 ] . }
+            OPTIONAL { $school sch-ont:address [ sch-ont:address3 ?address3 ] . }
+            OPTIONAL { $school sch-ont:address [ sch-ont:region [ skos:prefLabel ?region_label ] ] . }
+            OPTIONAL { $school sch-ont:address [ sch-ont:region ?region ] . }
 
-            OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
-            OPTIONAL { ?school sch-ont:gender ?gender . }
+            OPTIONAL { $school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
+            OPTIONAL { $school sch-ont:gender ?gender . }
 
-            OPTIONAL { ?school sch-ont:religiousCharacter [ rdfs:label ?religion_label ] . }
-            OPTIONAL { ?school sch-ont:religiousCharacter ?religion . }
+            OPTIONAL { $school sch-ont:religiousCharacter [ rdfs:label ?religion_label ] . }
+            OPTIONAL { $school sch-ont:religiousCharacter ?religion . }
+
+            $bindSchool
 
             OPTIONAL {
-                ?school
+                $school
                     wgs:lat ?lat ;
                     wgs:long ?long .
             }
@@ -431,18 +440,18 @@ EOD;
         $religionGraph = '';
         if (!empty($religion)) {
             if (array_key_exists($religion, $this->config['religions'])) {
-                $religionGraph = '?school sch-ont:religiousCharacter <'.$this->config['religions'][$religion].'> .';
+                $religionGraph = "$school sch-ont:religiousCharacter <".$this->config['religions'][$religion].'> .';
             }
             else {
-                $religionGraph = '?school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_'.$religion.' .';
+                $religionGraph = "$school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_".$religion.' .';
             }
         }
 
-        $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? '?school sch-ont:gender <'.$this->config['genders'][$gender].$gender.'> .' : '';
+        $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? "$school sch-ont:gender <".$this->config['genders'][$gender].$gender.'> .' : '';
 
         $enrolmentGraph = <<<EOD
             ?observation
-                DataGov:school ?school ;
+                DataGov:school $school ;
                 a qb:Observation .
 
              ?observation ?numberOfStudentsURI ?numberOfStudents .
@@ -463,7 +472,6 @@ EOD;
                         SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long
                         WHERE {
                             $schoolGraph
-                            FILTER (<$schoolId> = ?school)
                         }
 EOD;
 
@@ -525,8 +533,6 @@ EOD;
                         SELECT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
                         WHERE {
                             $schoolGraph
-                            FILTER (<$schoolId> = ?school)
-
                             $enrolmentGraph
                         }
                         ORDER BY str(?numberOfStudentsURI)
