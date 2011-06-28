@@ -18,6 +18,7 @@ var SE = { // School Explorer
 		SCHOOL_LISTING_MODE : "SCHOOL LISTING", // render a list of schools; a particular school can be selected
 		SCHOOL_DETAIL_MODE : "SCHOOL DETAIL", // render one school (note: requires the school URI, such as http://data-gov.ie/school/63000E) 
 		
+		BASE_URI : "school", // such as http://school-explorer.data-gov.ie/school on the server
 		NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
 		ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
 		AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
@@ -40,6 +41,7 @@ var SE = { // School Explorer
 		NEARBY_ELEMENT_ID : "school_nearby", // the @id of the nearby element
 		NEARBY_SLIDER_ELEMENT_ID : "school_nearby_slider", // the @id of the nearby slider
 		NEARBY_RADIUS_ELEMENT_ID : "school_nearby_radius", // the @id of the nearby radius
+		SCHOOL_INFO_ELEMENT_CLASS : "school_info", // the @class of a school info window
 		DEFAULT_SEARCH_RADIUS : 500, // default ...
 		MIN_SEARCH_RADIUS : 50, // ... min ...
 		MAX_SEARCH_RADIUS : 2000, // ... max radius for the search
@@ -131,37 +133,12 @@ var SE = { // School Explorer
 		$("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
 		SE.initSchoolContext();
 		SE.initLegend();
-		SE.handleInteraction();
 		
 		if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
-			$('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
-			$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
-			$.getJSON(SE.C.INFO_API_BASE + encodeURIComponent(SE.G.currentSchoolID), function(data, textStatus){
-				if(data.data) {
-					var school =  data.data[0];
-					var schoolID = school["school"].value;
-					var schoolSymbol = SE.drawMarker(school["label"].value, school["religion"].value, school["gender"].value);
-					// init school look-up table
-					SE.G.slist[schoolID] = school;
-					// create a map ...
-					SE.initMap(school["lat"].value, school["long"].value);
-					$('#' + SE.C.MAP_ELEMENT_ID).css("width", "550px");
-					$('#' + SE.C.MAP_ELEMENT_ID).css("float", "left");
-					$('#' + SE.C.MAP_ELEMENT_ID).css("margin", "0 10px 0 0");
-					$('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).css("margin", "0");
-					$('#' + SE.C.SV_MAP_ELEMENT_ID).css("margin", "0 0 20px 0");
-					
-					// ... with a marker for the school ...
-					SE.addSchoolMarker(school, schoolSymbol);
-					// ... and show the context ...
-					SE.showSchoolContext(schoolID);
-					// ... as well as activate associated info window via school look-up table
-					SE.renderSchool(school, function(iwcontent){
-						SE.G.iwlist[schoolID] = SE.addSchoolInfo(school["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
-					});
-				}
-			});
+			SE.handleSchoolDetailMode();
 		}
+		
+		SE.handleInteraction();
 	},
 	
 	initSchoolContext : function(){
@@ -193,6 +170,36 @@ var SE = { // School Explorer
 		});
 		buf.push("</div>");
 		$('#' + SE.C.LEGEND_ELEMENT_ID).html(buf.join(""));
+	},
+	
+	handleSchoolDetailMode : function(){
+		$('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
+		$('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
+		$.getJSON(SE.C.INFO_API_BASE + encodeURIComponent(SE.G.currentSchoolID), function(data, textStatus){
+			if(data.data) {
+				var school =  data.data[0];
+				var schoolID = school["school"].value;
+				var schoolSymbol = SE.drawMarker(school["label"].value, school["religion"].value, school["gender"].value);
+				// init school look-up table
+				SE.G.slist[schoolID] = school;
+				// create a map ...
+				SE.initMap(school["lat"].value, school["long"].value);
+				$('#' + SE.C.MAP_ELEMENT_ID).css("width", "550px");
+				$('#' + SE.C.MAP_ELEMENT_ID).css("float", "left");
+				$('#' + SE.C.MAP_ELEMENT_ID).css("margin", "0 10px 0 0");
+				$('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).css("margin", "0");
+				$('#' + SE.C.SV_MAP_ELEMENT_ID).css("margin", "0 0 20px 0");
+				$('.' + SE.C.SCHOOL_INFO_ELEMENT_CLASS).css("overflow", "auto");
+				// ... with a marker for the school ...
+				SE.addSchoolMarker(school, schoolSymbol);
+				// ... and show the context ...
+				SE.showSchoolContext(schoolID);
+				// ... as well as activate associated info window via school look-up table
+				SE.renderSchool(school, function(iwcontent){
+					SE.G.iwlist[schoolID] = SE.addSchoolInfo(school["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
+				});
+			}
+		});
 	},
 	
 	handleInteraction : function(){
@@ -536,13 +543,14 @@ var SE = { // School Explorer
 		var hashPos = currentURL.indexOf("#");
 		var schoolID = "";
 		
-		if(hashPos >= 0){ // trigger single school rendering for a hash URI such as http://school-explorer.data-gov.ie/school#63000E
+		if(hashPos >= 0 && currentURL.substring(hashPos + 1) != ""){ // trigger single school rendering for a hash URI such as http://school-explorer.data-gov.ie/school#63000E
 			SE.G.currentMode = SE.C.SCHOOL_DETAIL_MODE;
 			schoolID = currentURL.substring(hashPos + 1); // extract the school identifier, resulting in 63000E
 			SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + schoolID;  // assemble school URI, resulting in  http://data-gov.ie/school/63000E
 		}
 		else{ // trigger school listing
 			SE.G.currentMode = SE.C.SCHOOL_LISTING_MODE;
+			window.location = SE.C.BASE_URI + "#";
 		}
 		if(SE.C.DEBUG) console.log("School explorer opening in " + SE.G.currentMode + " mode ..."); 
 	},
