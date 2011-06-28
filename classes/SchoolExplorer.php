@@ -412,7 +412,7 @@ EOD;
             OPTIONAL { ?school sch-ont:address [ sch-ont:address2 ?address2 ] . }
             OPTIONAL { ?school sch-ont:address [ sch-ont:address3 ?address3 ] . }
 
-            OPTIONAL { ?school sch-ont:region [ rdfs:label ?region_label ] . }
+            OPTIONAL { ?school sch-ont:region [ skos:prefLabel ?region_label ] . }
             OPTIONAL { ?school sch-ont:region ?region . }
 
             OPTIONAL { ?school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
