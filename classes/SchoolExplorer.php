@@ -522,7 +522,7 @@ EOD;
             case 'enrolment':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
+                        SELECT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
                         WHERE {
                             $schoolGraph
                             FILTER (<$schoolId> = ?school)
