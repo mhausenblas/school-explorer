@@ -1,0 +1,36 @@
+Display issues
+- show things based on years of birth, rather than age/grade
+- ageing of the data -- it looks as if all data is current, but it isn't
+- total pupils -- should be a prominent feature
+- the pins are weird. what's all the detail in there?
+- show some of the other amenities on the map? select the types?
+
+Interaction issues
+- Separate demographics from schools because they are based on different areas
+- "how many miles are you willing to drive?"
+- "what's the gender of your child?" optional. don't show boy schools if a girl
+- "what's the year/date of birth of your child?" optional. don't show primary schools if secondary school age
+- "how many non-denominational schools in Galway?" should be easy to answer
+
+Data issues
+- can we get a list of all schools where we don't have geo coordinates? how to get the missing coordinates?
+- how to update people born after census night and how to get schools built after we got the last data?
+- add live births in?
+- concern: outdated school data; need to get new data eventually
+- what's the current coverage of school types?
+
+Getting more data
+- can we get links to all school homepages? would be quite important
+- private schools? do we have data? can we get it? how would we handle it?
+
+Ideas for future extensions
+- feedback box. can we get ppl to update school info?
+- can we show school amenities? crowd-source data entry?
+- can we show catchment areas for schools? based on radius? How many children of each age live in a certain radius?
+
+Misc. notes
+- you can send your child to school at age 4, 5 or 6
+- there are non-fee-paying private schools (e.g., those run by the church)
+
+
+Currently, enrollment numbers for a school and demographics for the area it's in are shown directly side by side. This is misleading because it is not clear what area the demographics numbers apply to. The school may be at the very edge of the area, and there is no indication of the size of the area.
