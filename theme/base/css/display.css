@@ -241,10 +241,12 @@ clear:both;
 display:none;
 }
 
-#form_search .form_data span {
+#form_search .form_data li {
 float:left;
 margin-right:1em;
 margin-bottom:0;
+list-style-type:none;
+width:275px;
 }
 
 
