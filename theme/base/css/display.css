@@ -243,11 +243,22 @@ display:none;
 
 #form_search .form_data li {
 float:left;
-margin-right:1em;
+margin-left:0.5em;
 margin-bottom:0;
 list-style-type:none;
-width:275px;
 }
+#form_search .form_data #address {
+width:250px;
+}
+
+#form_search .form_data li:first-child {
+margin-left:0;
+}
+
+#form_search .form_data #form_distance .form_guide {
+display:none;
+}
+
 
 
 #wrap {

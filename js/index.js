@@ -132,15 +132,43 @@ var SE = { // School Explorer
 
     go : function(){
         SE.G.chartAPI = new jGCharts.Api(); 
-        $("input:text:visible:first").focus(); // set focus to the first input field which should be the address field
+        SE.initFormSearch();
         SE.initSchoolContext();
         SE.initLegend();
-        
+
         if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
             SE.handleSchoolDetailMode();
             }
-        
+
         SE.handleInteraction();
+    },
+
+    initFormSearch : function(){
+        $("#form_search #address").focus();
+        $("#form_search #form_distance").hover(function () {
+            $(this).css({position:"relative"});
+
+            form_guide = $(this).find(".form_guide");
+            form_guide.css({
+                display: "block",
+                position: "absolute",
+                bottom: "-4.5em",
+                left: "0",
+                zIndex: "9",
+                width: "400px",
+                border: "1px solid #aaa",
+                borderRadius: "7px",
+                fontSize: "0.9",
+                padding: "0.5em",
+                background: "#fff"
+            });
+            return false;
+        }, function () {
+            form_guide.css({
+                display: "none"
+            })
+            return false
+        });
     },
 
     initSchoolContext : function(){
