@@ -1,11 +1,4 @@
 <?php require_once 'head.html'; ?>
-        <link rel="stylesheet" href="/theme/overcast/jquery-ui.css" type="text/css" media="all" />
-        <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
-        <script src="/js/jquery.min.js"></script>
-        <script src="/js/jquery-ui-min.js"></script>
-        <script src="/js/jgcharts.js"></script>
-        <script src="/js/jquery.scrollTo-1.4.2-min.js"></script>
-        <script src="/js/index.js"></script>
         <title>School &#8212; School Explorer</title>
         <meta name="description" content="Information about schools to help parents to decide where to send their kids to."/>
     </head>
@@ -15,20 +8,12 @@
 <?php require_once 'header.html'; ?>
             <div id="core">
                 <div id="content">
-                    <h1>Schools</h1>
+                    <h1>School</h1>
+
                     <div id="content_inner">
-                        <div id="school_results">
-                            <div id="school_legend"></div>
-                            <div id="school_map"></div>
-                            <div id="school_context">
-                                <div id="school_sv_map"></div>
-                                <div id="school_nearby_radius"></div>
-                                <div id="school_nearby_slider"></div>
-                                <div id="school_nearby"></div>
-                            </div>
-                            <div id="school_details"></div>
-                        </div>
-                        <canvas id="dynam" width="40" height="60"></canvas>
+<?php
+    echo $this->school();
+?>
                     </div>
                 </div>
             </div>

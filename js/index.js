@@ -18,7 +18,7 @@ var SE = { // School Explorer
         SCHOOL_LISTING_MODE : "SCHOOL LISTING", // render a list of schools; a particular school can be selected
         SCHOOL_DETAIL_MODE : "SCHOOL DETAIL", // render one school (note: requires the school URI, such as http://data-gov.ie/school/63000E)
 
-        BASE_URI : "school", // such as http://school-explorer.data-gov.ie/school on the server
+        BASE_URI : "map", // such as http://school-explorer.data-gov.ie/map on the server
         NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
         ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
         AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
@@ -135,11 +135,9 @@ var SE = { // School Explorer
         SE.initFormSearch();
         SE.initSchoolContext();
         SE.initLegend();
-
         if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
             SE.handleSchoolDetailMode();
             }
-
         SE.handleInteraction();
     },
 
