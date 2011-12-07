@@ -66,9 +66,42 @@ class SchoolExplorer
 
         if (isset($paths[1]) && !empty($paths[1])) {
             $query = <<<EOD
-SELECT ?school ?property ?object
+SELECT ?label ?region ?identifier ?address1 ?address2 ?address3 ?refPeriod ?numberOfStudents ?numberOfGirlStudents ?numberOfBoyStudents
 WHERE {
-    <http://data-gov.ie/school/$paths[1]> ?property ?object .
+    <http://data-gov.ie/school/$paths[1]>
+        rdfs:label ?label ;
+        sch-ont:region ?region ;
+        dcterms:identifier ?identifier ;
+        sch-ont:address ?address .
+
+    OPTIONAL {
+        ?address a sch-ont:Address .
+        OPTIONAL {
+            ?address sch-ont:address1 ?address1 .
+        }
+        OPTIONAL {
+            ?address sch-ont:address2 ?address2 .
+        }
+        OPTIONAL {
+            ?address sch-ont:address3 ?address3 .
+        }
+    }
+
+    OPTIONAL {
+        ?s3 ?p3 <http://data-gov.ie/school/$paths[1]> .
+        OPTIONAL {
+            ?s3 sdmx-dimension:refPeriod ?refPeriod .
+        }
+        OPTIONAL {
+            ?s3 DataGov:number-of-students ?numberOfStudents .
+        }
+        OPTIONAL {
+            ?s3 DataGov:number-of-girl-students ?numberOfGirlStudents .
+        }
+        OPTIONAL {
+            ?s3 DataGov:number-of-boy-students ?numberOfBoyStudents .
+        }
+    }
 }
 EOD;
         }
@@ -119,6 +152,7 @@ EOD;
             <dd>
                 <ul>
 EOD;
+
         foreach($bindings as $key => $value) {
             foreach($vars as $k => $var) {
                 $textContent = '';
@@ -153,21 +187,59 @@ EOD;
         $s = <<<EOD
         <dl>
 EOD;
+
         foreach($bindings as $key => $value) {
             foreach($value as $k => $v) {
-                if ($k == 'property') {
-                    $property = $this->getPrefixName($value['property']['value']);
+                switch ($k) {
+                    case 'label':
+                        $property = 'Name';
+                        $object = $v['value'];
+                        break;
+                    case 'region':
+                        $property = 'Region';
+                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$v['value'].'</a>' : $v['value'];
+                        break;
+                    case 'identifier':
+                        $property = 'School ID';
+                        $object = $v['value'];
+                        break;
+                    case 'address1':
+                        $property = 'Address 1';
+                        $object = $v['value'];
+                        break;
+                    case 'address2':
+                        $property = 'Address 2';
+                        $object = $v['value'];
+                        break;
+                    case 'address3':
+                        $property = 'Address 3';
+                        $object = $v['value'];
+                        break;
+                    case 'refPeriod':
+                        $property = 'Reference period';
+                        $object = $v['value'];
+                        break;
+                    case 'numberOfStudents':
+                        $property = 'Number of students';
+                        $object = $v['value'];
+                        break;
+                    case 'numberOfGirlStudents':
+                        $property = 'Number of girl students';
+                        $object = $v['value'];
+                        break;
+                    case 'numberOfBoyStudents':
+                        $property = 'Number of boy students';
+                        $object = $v['value'];
+                        break;
+                    default:
+                        $property = $k;
+                        $object = $v['value'];
                 }
-                else {
-                    $object = $value['object']['value'];
-                }
-
-            }
             $s .= <<<EOD
                 <dt>$property</dt>
                 <dd>$object</dd>
 EOD;
-
+            }
         }
         $s .= '</dl>';
 
