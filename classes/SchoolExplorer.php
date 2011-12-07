@@ -16,7 +16,7 @@ class SchoolExplorer
 
     function __construct()
     {
-        define('STORE_URI', 'http://data-gov.ie/sparql');
+        define('STORE_URI', 'http://school-explorer/sparql');
 
         $this->config = array();
         $this->setPrefixes();
@@ -509,7 +509,7 @@ EOD;
                             $schoolGraph
                             $religionGraph
                             $genderGraph
-                            BIND (afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) AS ?distance)
+                            BIND ((afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) * 100) AS ?distance)
                         }
                         ORDER BY ?distance
                         LIMIT 50
