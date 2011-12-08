@@ -49,6 +49,7 @@ var SE = { // School Explorer
         SCHOOL_LIST_ITEM_CLASS : "school_lst", // the @class of a school listing element 
         EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
         ADDRESS_FIELD_ID : "address", // the @id of the address input field
+        DISTANCE_FIELD_ID : "distance", // the @id of the distance input field
         RELIGION_FIELD_ID : "religion", // the @id of the religion input field
         GENDER_FIELD_ID : "gender", // the @id of the gender input field
         FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
@@ -76,6 +77,7 @@ var SE = { // School Explorer
         currentSchoolID : null // selected school
     },
 
+    I : {  }, // Input values
 
     // add general overview stats/diagram based on:
     // http://en.wikipedia.org/wiki/Category:Schools_in_the_Republic_of_Ireland and
@@ -165,8 +167,8 @@ var SE = { // School Explorer
     initMapPanel : function() {
         SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
         SE.G.chartAPI = new jGCharts.Api();
-        SE.initSchoolContext();
-        SE.initLegend();
+        SE.initResultsPanel();
+        SE.initLegendPanel();
         if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
             SE.handleSchoolDetailMode();
             }
@@ -174,7 +176,7 @@ var SE = { // School Explorer
     },
 
 
-    initSchoolContext : function(){
+    initResultsPanel : function(){
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
                 value: SE.C.DEFAULT_SEARCH_RADIUS,
                 min: SE.C.MIN_SEARCH_RADIUS,
@@ -192,7 +194,7 @@ var SE = { // School Explorer
         $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
     },
 
-    initLegend : function(){
+    initLegendPanel : function(){
         var buf = ["<div class='sublegend'><h2>Gender</h2>"];
         $.each(SE.G.genderCCodes, function(index, val){
             buf.push("<div style='background:" + SE.G.genderCCodes[index] +";'>" + index + "</div>");
@@ -206,6 +208,8 @@ var SE = { // School Explorer
     },
 
     handleSchoolDetailMode : function(){
+        SE.initSchoolSearchValues();
+
         $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
         $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
         $.getJSON(SE.C.INFO_API_BASE + encodeURIComponent(SE.G.currentSchoolID), function(data, textStatus){
@@ -237,13 +241,18 @@ var SE = { // School Explorer
                     if(data.data) {
                         var buf = [""];
                         var rows = data.data;
+                        if(SE.C.DEBUG) {
+                            console.log('Data:');
+                            console.log(data);
+                        }
                         // create the map centered on the location of the selected school
                         SE.initMap(school["lat"].value, school["long"].value);
 
                         buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
                         for(i in rows) {
                             var row = rows[i];
-                            var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
+                            var state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+                            var schoolSymbol = SE.drawMarker(i, state, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
                             SE.G.slist[row["school"].value] = row; // set up school look-up table
                             if(i < SE.C.MAX_SCHOOL_LISTING) {
                                 buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
@@ -272,6 +281,25 @@ var SE = { // School Explorer
                 });
             }
         });
+    },
+
+    determineSchoolRangeState : function(label, distance, religion, gender) {
+        /*States: inapplicable, inrange, outofrange*/
+        state = 'inrange';
+
+        if (distance > SE.I.SCHOOL_DISTANCE) {
+            status = 'outofrange';
+        }
+
+        if (religion != SE.I.SCHOOL_RELIGION) {
+            status = 'inapplicable';
+        }
+
+        if (gender != SE.I.SCHOOL_GENDER) {
+            status = 'inapplicable';
+        }
+
+       return state;
     },
 
     handleInteraction : function(){
@@ -379,27 +407,34 @@ var SE = { // School Explorer
         });
     },
 
+    initSchoolSearchValues : function() {
+        SE.I.SCHOOL_ADDRESS = $('#' + SE.C.ADDRESS_FIELD_ID).val();
+        SE.I.SCHOOL_DISTANCE = $('#' + SE.C.DISTANCE_FIELD_ID).val();
+        SE.I.SCHOOL_RELIGION = $('#' + SE.C.RELIGION_FIELD_ID).val();
+        SE.I.SCHOOL_GENDER = $('#' + SE.C.GENDER_FIELD_ID).val();
+    },
+
     showSchools : function() {
-        var a = $('#' + SE.C.ADDRESS_FIELD_ID).val();
-        var r = $('#' + SE.C.RELIGION_FIELD_ID).val();
-        var g = $('#' + SE.C.GENDER_FIELD_ID).val();
+        SE.initSchoolSearchValues();
 
         $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
         $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
 
         SE.hideSchoolContext(); // make sure the previous school context is reset
 
-         SE.position2Address(a, function(lat, lng){ // get the location from address and show the 'nearby' schools
+         SE.position2Address(SE.I.SCHOOL_ADDRESS, function(lat, lng){ // get the location from address and show the 'nearby' schools
             if(SE.C.DEBUG){
-                console.log("For address [" + a + "] I found the following location: [" + lat + "," + lng + "]");
-                console.log("You asked for: religion: [" + r + "] and gender: [" + g + "]");
+                console.log("For address [" + SE.I.SCHOOL_ADDRESS + "] I found the following location: [" + lat + "," + lng + "]");
+                console.log("You asked for distance [" + SE.I.SCHOOL_DISTANCE + "], religion: [" + SE.I.SCHOOL_RELIGION + "], gender: [" + SE.I.SCHOOL_GENDER + "]");
             }
             // now, get the schools around this address
-            $.getJSON(SE.buildNearSchoolsURI(lat, lng, r, g), function(data, textStatus){
+            $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function(data, textStatus){
                 if(data.data) {
                     var buf = [""];
                     var rows = data.data;
-
+console.log('showSchools()');
+console.log('data:');
+console.log(data);
                     // if we already have a map, remeber the zoom factor
                     if(SE.G.smap) SE.G.selectedZoomFactor = SE.G.smap.getZoom();
 
@@ -409,7 +444,9 @@ var SE = { // School Explorer
                     buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
                     for(i in rows) {
                         var row = rows[i];
-                        var schoolSymbol = SE.drawMarker(row["label"].value, row["religion"].value, row["gender"].value);
+
+                        var state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+                        var schoolSymbol = SE.drawMarker(i, state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
 
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
 
@@ -433,7 +470,7 @@ var SE = { // School Explorer
         var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
         SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
         SE.nearbyBusy();
-        $('#' +  SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
+        $('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
         $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
         // now trigger LGD look-up and make the school listing fit:
@@ -642,14 +679,16 @@ var SE = { // School Explorer
         return infowindow;
     },
 
-    drawMarker : function(name, religion, gender){
+    drawMarker : function(i, state, name, distance, religion, gender){
+    console.log("i: " + i);
+    console.log("state: " + state);
+    console.log("name: " + name);
+    console.log("distance: " + distance);
+    console.log("religion: " + religion);
+    console.log("gender: " + gender);
         // see also http://www.html5canvastutorials.com/
         var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
         var context = canvas.getContext('2d');
-        var topLeftCornerX = 0,
-            topLeftCornerY = 0,
-            width = 40,
-            height = 20; // container dimensions
 
         context.lineWidth = 1;
         context.strokeStyle = "#000";
@@ -657,43 +696,14 @@ var SE = { // School Explorer
 
         // create the container
         context.beginPath();
-        context.rect(topLeftCornerX, topLeftCornerY, width, height);
+        context.rect(-15, -15, 30, 30);
         context.fill();
         context.stroke();
-
-        // create the pin
-        context.beginPath();
-        context.moveTo(20, 60);
-        context.lineTo(20, 21);
-        context.fill();
-        context.lineWidth = 2;
-        context.stroke();
-        
-        // create the color-coded indicators for gender
-        topLeftCornerX = 2;
-        topLeftCornerY = 2;
-        width = 5;
-        height = 16;
-        context.beginPath();
-        context.rect(topLeftCornerX, topLeftCornerY, width, height);
-        context.fillStyle = SE.getGenderCoding(gender);
-        context.fill();
-
-        // create the color-coded indicators for religion
-        topLeftCornerX = 9;
-        topLeftCornerY = 2;
-        width = 5;
-        height = 16;
-        context.beginPath();
-        context.rect(topLeftCornerX, topLeftCornerY, width, height);
-        context.fillStyle = SE.getReligionCoding(religion);
-        context.fill();
 
         // display a bit of the school name
         context.fillStyle = '#fff';
-        context.font = "6pt Arial";
-        context.fillText(name.substring(0, 5), 16, 8);
-        context.fillText(name.substring(5, 8) + ' ...', 16, 16);
+        context.font = "8pt Arial";
+        context.fillText(i, 3, 10);
 
         return canvas.toDataURL("image/png");
     },
