@@ -182,89 +182,93 @@ EOD;
     function showSchool($data)
     {
         $vars = $data['head']['vars'];
-
         $bindings = $data['results']['bindings'];
 
-        $s = <<<EOD
-        <dl>
-EOD;
+        $s = '';
 
-        foreach($bindings as $key => $value) {
-            foreach($value as $k => $v) {
-                $property = '';
-                $object = '';
-                switch ($k) {
-                    case 'identifier':
-                        $property = 'School ID';
-                        $object = $v['value'];
-                        break;
-                    case 'label':
-                        $property = 'Name';
-                        $object = $v['value'];
-                        break;
-                    case 'address1':
-                        $property = 'Address 1';
-                        $object = $v['value'];
-                        break;
-                    case 'address2':
-                        $property = 'Address 2';
-                        $object = $v['value'];
-                        break;
-                    case 'address3':
-                        $property = 'Address 3';
-                        $object = $v['value'];
-                        break;
-                    case 'lat':
-                        $property = 'Latitude';
-                        $object = $v['value'];
-                        break;
-                    case 'long':
-                        $property = 'Longitude';
-                        $object = $v['value'];
-                        break;
-                    case 'region':
-                        $property = 'Region';
-                        $regionLabel = (empty($value['regionLabel']['value'])) ? $v['value'] : $value['regionLabel']['value'];
-                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$regionLabel.'</a>' : $v['value'];
-                        break;
-                    case 'gender':
-                        $property = 'Gender';
-                        $genderLabel = (empty($value['genderLabel']['value'])) ? $v['value'] : $value['genderLabel']['value'];
-                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$genderLabel.'</a>' : $v['value'];
-                        break;
-                    case 'religion':
-                        $property = 'Religion';
-                        $religionLabel = (empty($value['religionLabel']['value'])) ? $v['value'] : $value['religionLabel']['value'];
-                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$religionLabel.'</a>' : $v['value'];
-                        break;
-                    case 'refPeriod':
-                        $property = 'Reference period';
-                        $object = $v['value'];
-                        break;
-                    case 'numberOfStudents':
-                        $property = 'Number of students';
-                        $object = $v['value'];
-                        break;
-                    case 'numberOfGirlStudents':
-                        $property = 'Number of girl students';
-                        $object = $v['value'];
-                        break;
-                    case 'numberOfBoyStudents':
-                        $property = 'Number of boy students';
-                        $object = $v['value'];
-                        break;
-                    default:
-                        break;
+        //TODO: Handle case where there is school
+
+        if (!is_null($bindings) || !empty($bindings)) {
+            $s .= <<<EOD
+            <dl>
+EOD;
+            foreach($bindings as $key => $value) {
+                foreach($value as $k => $v) {
+                    $property = '';
+                    $object = '';
+                    switch ($k) {
+                        case 'identifier':
+                            $property = 'School ID';
+                            $object = $v['value'];
+                            break;
+                        case 'label':
+                            $property = 'Name';
+                            $object = $v['value'];
+                            break;
+                        case 'address1':
+                            $property = 'Address 1';
+                            $object = $v['value'];
+                            break;
+                        case 'address2':
+                            $property = 'Address 2';
+                            $object = $v['value'];
+                            break;
+                        case 'address3':
+                            $property = 'Address 3';
+                            $object = $v['value'];
+                            break;
+                        case 'lat':
+                            $property = 'Latitude';
+                            $object = $v['value'];
+                            break;
+                        case 'long':
+                            $property = 'Longitude';
+                            $object = $v['value'];
+                            break;
+                        case 'region':
+                            $property = 'Region';
+                            $regionLabel = (empty($value['regionLabel']['value'])) ? $v['value'] : $value['regionLabel']['value'];
+                            $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$regionLabel.'</a>' : $v['value'];
+                            break;
+                        case 'gender':
+                            $property = 'Gender';
+                            $genderLabel = (empty($value['genderLabel']['value'])) ? $v['value'] : $value['genderLabel']['value'];
+                            $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$genderLabel.'</a>' : $v['value'];
+                            break;
+                        case 'religion':
+                            $property = 'Religion';
+                            $religionLabel = (empty($value['religionLabel']['value'])) ? $v['value'] : $value['religionLabel']['value'];
+                            $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$religionLabel.'</a>' : $v['value'];
+                            break;
+                        case 'refPeriod':
+                            $property = 'Reference period';
+                            $object = $v['value'];
+                            break;
+                        case 'numberOfStudents':
+                            $property = 'Number of students';
+                            $object = $v['value'];
+                            break;
+                        case 'numberOfGirlStudents':
+                            $property = 'Number of girl students';
+                            $object = $v['value'];
+                            break;
+                        case 'numberOfBoyStudents':
+                            $property = 'Number of boy students';
+                            $object = $v['value'];
+                            break;
+                        default:
+                            break;
+                    }
+                    $s .= <<<EOD
+
+                        <dt>$property</dt>
+                        <dd>$object</dd>
+
+EOD;
                 }
-                $s .= <<<EOD
-
-                    <dt>$property</dt>
-                    <dd>$object</dd>
-
-EOD;
             }
+            $s .= '</dl>';
         }
-        $s .= '</dl>';
 
         return $s;
     }
