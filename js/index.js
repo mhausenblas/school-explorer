@@ -130,18 +130,11 @@ var SE = { // School Explorer
 
     // TODO: make legend filter-able
 
-    go : function(){
-        SE.G.chartAPI = new jGCharts.Api(); 
-        SE.initFormSearch();
-        SE.initSchoolContext();
-        SE.initLegend();
-        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
-            SE.handleSchoolDetailMode();
-            }
-        SE.handleInteraction();
+    init : function(){
+        SE.initSearchPanel();
     },
 
-    initFormSearch : function(){
+    initSearchPanel : function(){
         $("#form_search #address").focus();
         $("#form_search #form_distance").hover(function () {
             $(this).css({position:"relative"});
@@ -168,6 +161,18 @@ var SE = { // School Explorer
             return false
         });
     },
+
+    initMapPanel : function() {
+        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
+        SE.G.chartAPI = new jGCharts.Api();
+        SE.initSchoolContext();
+        SE.initLegend();
+        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
+            SE.handleSchoolDetailMode();
+            }
+        SE.handleInteraction();
+    },
+
 
     initSchoolContext : function(){
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
@@ -804,13 +809,16 @@ var SE = { // School Explorer
 };
 
 $(document).ready(function(){
-    if ($("#form_search")) {
-        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
-        SE.go(); // start interaction
+    SE.init(); // start interaction
 
-        // TESTS:
-        // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
-        // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
-        // $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
+    if ($('body').attr('id') == 'map') {
+        if ($("#form_search")) {
+            SE.initMapPanel();
+
+            // TESTS:
+            // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
+            // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
+            // $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
+        }
     }
 });
