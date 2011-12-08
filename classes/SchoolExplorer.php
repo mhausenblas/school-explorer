@@ -65,42 +65,43 @@ class SchoolExplorer
         $paths = $this->config['requestPath'];
 
         if (isset($paths[1]) && !empty($paths[1])) {
+            $school = "<http://data-gov.ie/school/$paths[1]>";
+
+//TODO: This should be refactored with getRequestedData()
             $query = <<<EOD
-SELECT ?label ?region ?identifier ?address1 ?address2 ?address3 ?refPeriod ?numberOfStudents ?numberOfGirlStudents ?numberOfBoyStudents
+SELECT DISTINCT ?identifier ?label ?address1 ?address2 ?address3 ?region ?regionLabel ?lat ?long ?gender ?genderLabel ?religion ?religionLabel ?refPeriod ?numberOfStudents ?numberOfGirlStudents ?numberOfBoyStudents
+
 WHERE {
-    <http://data-gov.ie/school/$paths[1]>
-        rdfs:label ?label ;
-        sch-ont:region ?region ;
-        dcterms:identifier ?identifier ;
-        sch-ont:address ?address .
+    $school
+        a sch-ont:School ;
+        rdfs:label ?label .
+
+    OPTIONAL { $school dcterms:identifier ?identifier . }
+
+    OPTIONAL { $school sch-ont:address [ sch-ont:address1 ?address1 ] . }
+    OPTIONAL { $school sch-ont:address [ sch-ont:address2 ?address2 ] . }
+    OPTIONAL { $school sch-ont:address [ sch-ont:address3 ?address3 ] . }
+    OPTIONAL { $school sch-ont:address [ sch-ont:region [ skos:prefLabel ?regionLabel ] ] . }
+    OPTIONAL { $school sch-ont:address [ sch-ont:region ?region ] . }
 
     OPTIONAL {
-        ?address a sch-ont:Address .
-        OPTIONAL {
-            ?address sch-ont:address1 ?address1 .
-        }
-        OPTIONAL {
-            ?address sch-ont:address2 ?address2 .
-        }
-        OPTIONAL {
-            ?address sch-ont:address3 ?address3 .
-        }
+        $school
+            wgs:lat ?lat ;
+            wgs:long ?long .
     }
 
+    OPTIONAL { $school sch-ont:gender [ skos:prefLabel ?genderLabel ] . }
+    OPTIONAL { $school sch-ont:gender ?gender . }
+
+    OPTIONAL { $school sch-ont:religiousCharacter [ rdfs:label ?religionLabel ] . }
+    OPTIONAL { $school sch-ont:religiousCharacter ?religion . }
+
     OPTIONAL {
-        ?s3 ?p3 <http://data-gov.ie/school/$paths[1]> .
-        OPTIONAL {
-            ?s3 sdmx-dimension:refPeriod ?refPeriod .
-        }
-        OPTIONAL {
-            ?s3 DataGov:number-of-students ?numberOfStudents .
-        }
-        OPTIONAL {
-            ?s3 DataGov:number-of-girl-students ?numberOfGirlStudents .
-        }
-        OPTIONAL {
-            ?s3 DataGov:number-of-boy-students ?numberOfBoyStudents .
-        }
+        ?s3 ?p3 $school .
+        OPTIONAL { ?s3 sdmx-dimension:refPeriod ?refPeriod . }
+        OPTIONAL { ?s3 DataGov:number-of-students ?numberOfStudents . }
+        OPTIONAL { ?s3 DataGov:number-of-girl-students ?numberOfGirlStudents . }
+        OPTIONAL { ?s3 DataGov:number-of-boy-students ?numberOfBoyStudents . }
     }
 }
 EOD;
@@ -190,17 +191,15 @@ EOD;
 
         foreach($bindings as $key => $value) {
             foreach($value as $k => $v) {
+                $property = '';
+                $object = '';
                 switch ($k) {
-                    case 'label':
-                        $property = 'Name';
-                        $object = $v['value'];
-                        break;
-                    case 'region':
-                        $property = 'Region';
-                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$v['value'].'</a>' : $v['value'];
-                        break;
                     case 'identifier':
                         $property = 'School ID';
+                        $object = $v['value'];
+                        break;
+                    case 'label':
+                        $property = 'Name';
                         $object = $v['value'];
                         break;
                     case 'address1':
@@ -214,6 +213,29 @@ EOD;
                     case 'address3':
                         $property = 'Address 3';
                         $object = $v['value'];
+                        break;
+                    case 'lat':
+                        $property = 'Latitude';
+                        $object = $v['value'];
+                        break;
+                    case 'long':
+                        $property = 'Longitude';
+                        $object = $v['value'];
+                        break;
+                    case 'region':
+                        $property = 'Region';
+                        $regionLabel = (empty($value['regionLabel']['value'])) ? $v['value'] : $value['regionLabel']['value'];
+                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$regionLabel.'</a>' : $v['value'];
+                        break;
+                    case 'gender':
+                        $property = 'Gender';
+                        $genderLabel = (empty($value['genderLabel']['value'])) ? $v['value'] : $value['genderLabel']['value'];
+                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$genderLabel.'</a>' : $v['value'];
+                        break;
+                    case 'religion':
+                        $property = 'Religion';
+                        $religionLabel = (empty($value['religionLabel']['value'])) ? $v['value'] : $value['religionLabel']['value'];
+                        $object = ($v['type'] == 'uri') ? '<a href="'.$v['value'].'">'.$religionLabel.'</a>' : $v['value'];
                         break;
                     case 'refPeriod':
                         $property = 'Reference period';
@@ -232,12 +254,13 @@ EOD;
                         $object = $v['value'];
                         break;
                     default:
-                        $property = $k;
-                        $object = $v['value'];
+                        break;
                 }
-            $s .= <<<EOD
-                <dt>$property</dt>
-                <dd>$object</dd>
+                $s .= <<<EOD
+
+                    <dt>$property</dt>
+                    <dd>$object</dd>
+
 EOD;
             }
         }
