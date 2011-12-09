@@ -249,10 +249,13 @@ var SE = { // School Explorer
                         SE.initMap(school["lat"].value, school["long"].value);
 
                         buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
+                        var counter = 0;
                         for(i in rows) {
                             var row = rows[i];
-                            var state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
-                            var schoolSymbol = SE.drawMarker(i, state, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+                            var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+
+                            var school_marker = (school_state == 'inrange') ? ++counter : 0;
+                            var schoolSymbol = SE.drawMarker(school_marker, school_state, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
                             SE.G.slist[row["school"].value] = row; // set up school look-up table
                             if(i < SE.C.MAX_SCHOOL_LISTING) {
                                 buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
@@ -281,25 +284,6 @@ var SE = { // School Explorer
                 });
             }
         });
-    },
-
-    determineSchoolRangeState : function(label, distance, religion, gender) {
-        /*States: inapplicable, inrange, outofrange*/
-        state = 'inrange';
-
-        if (distance > SE.I.SCHOOL_DISTANCE) {
-            status = 'outofrange';
-        }
-
-        if (religion != SE.I.SCHOOL_RELIGION) {
-            status = 'inapplicable';
-        }
-
-        if (gender != SE.I.SCHOOL_GENDER) {
-            status = 'inapplicable';
-        }
-
-       return state;
     },
 
     handleInteraction : function(){
@@ -412,6 +396,11 @@ var SE = { // School Explorer
         SE.I.SCHOOL_DISTANCE = $('#' + SE.C.DISTANCE_FIELD_ID).val();
         SE.I.SCHOOL_RELIGION = $('#' + SE.C.RELIGION_FIELD_ID).val();
         SE.I.SCHOOL_GENDER = $('#' + SE.C.GENDER_FIELD_ID).val();
+
+        console.log(SE.I.SCHOOL_ADDRESS);
+        console.log(SE.I.SCHOOL_DISTANCE);
+        console.log(SE.I.SCHOOL_RELIGION);
+        console.log(SE.I.SCHOOL_GENDER);
     },
 
     showSchools : function() {
@@ -422,12 +411,13 @@ var SE = { // School Explorer
 
         SE.hideSchoolContext(); // make sure the previous school context is reset
 
-         SE.position2Address(SE.I.SCHOOL_ADDRESS, function(lat, lng){ // get the location from address and show the 'nearby' schools
+        SE.position2Address(SE.I.SCHOOL_ADDRESS, function(lat, lng){ // get the location from address and show the 'nearby' schools
             if(SE.C.DEBUG){
                 console.log("For address [" + SE.I.SCHOOL_ADDRESS + "] I found the following location: [" + lat + "," + lng + "]");
                 console.log("You asked for distance [" + SE.I.SCHOOL_DISTANCE + "], religion: [" + SE.I.SCHOOL_RELIGION + "], gender: [" + SE.I.SCHOOL_GENDER + "]");
             }
             // now, get the schools around this address
+
             $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function(data, textStatus){
                 if(data.data) {
                     var buf = [""];
@@ -442,11 +432,15 @@ console.log(data);
                     SE.initMap(lat, lng);
 
                     buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
+
+                    var counter = 0;
                     for(i in rows) {
                         var row = rows[i];
 
-                        var state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
-                        var schoolSymbol = SE.drawMarker(i, state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+                        var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+
+                        var school_marker = (school_state == 'inrange') ? ++counter : 0;
+                        var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
 
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
 
@@ -489,7 +483,13 @@ console.log(data);
 
     // for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
     buildNearSchoolsURI : function(lat, lng, religion, gender){
-        return (religion == "") ? SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + gender : SE.C.NEAR_API_BASE + lat + "," + lng + "&religion=" + religion + "&gender=" + gender;
+        var r = "";
+        if (religion != "") {
+            r = "&religion=" + encodeURIComponent(religion);
+        }
+        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + encodeURIComponent(gender) + r;
+        console.log(url);
+        return url;
     },
 
     // for example: lgd_lookup?center=53.274795076024,-9.0540373672574&radius=1000
@@ -679,31 +679,84 @@ console.log(data);
         return infowindow;
     },
 
-    drawMarker : function(i, state, name, distance, religion, gender){
-    console.log("i: " + i);
-    console.log("state: " + state);
-    console.log("name: " + name);
-    console.log("distance: " + distance);
-    console.log("religion: " + religion);
-    console.log("gender: " + gender);
+    determineSchoolRangeState : function(label, distance, religion, gender) {
+        /*States: inapplicable, inrange, outofrange*/
+        school_state = 'inrange';
+
+        if (SE.I.SCHOOL_DISTANCE.length > 0 && parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
+            school_state = 'outofrange';
+        }
+
+        if (SE.I.SCHOOL_RELIGION.length > 0 && religion != SE.I.SCHOOL_RELIGION) {
+            school_state = 'inapplicable';
+        }
+
+        if (SE.I.SCHOOL_GENDER.length > 0 && gender != SE.I.SCHOOL_GENDER) {
+            school_state = 'inapplicable';
+        }
+
+       return school_state;
+    },
+
+    drawMarker : function(school_marker, school_state, name, distance, religion, gender){
+        if(SE.C.DEBUG) {
+            console.log("--------");
+            console.log("school_marker: " + school_marker);
+            console.log("school_state: " + school_state);
+            console.log("name: " + name);
+            console.log("distance: " + distance);
+            console.log("religion: " + religion);
+            console.log("gender: " + gender);
+        }
+
         // see also http://www.html5canvastutorials.com/
         var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
         var context = canvas.getContext('2d');
 
-        context.lineWidth = 1;
-        context.strokeStyle = "#000";
-        context.fillStyle = '#000';
+        switch(school_state) {
+            case 'inapplicable': default:
+                context.strokeStyle = '#000';
+                context.fillStyle = '#000';
+                break;
+            case 'inrange':
+                context.strokeStyle = '#647819';
+                context.fillStyle = '#647819';
+                break;
+            case 'outofrange':
+                context.strokeStyle = '#777';
+                context.fillStyle = '#777';
+                break;
+        }
 
-        // create the container
+        x = -15;
+        y = -15;
+        width = 30;
+        height = 30;
+        x_text = 4;
+        y_text = 12;
+
+        if(school_marker > 9) {
+            x = -17;
+            width = 33;
+            x_text = 2;
+        }
+
+        if(school_marker > 99) {
+            x = -20;
+            width = 40;
+            x_text = 1;
+        }
+
         context.beginPath();
-        context.rect(-15, -15, 30, 30);
+        context.rect(x, y, width, height);
         context.fill();
         context.stroke();
 
-        // display a bit of the school name
-        context.fillStyle = '#fff';
-        context.font = "8pt Arial";
-        context.fillText(i, 3, 10);
+        if(school_marker > 0) {
+            context.fillStyle = '#fff';
+            context.font = "8pt monospace";
+            context.fillText(i, x_text, y_text);
+        }
 
         return canvas.toDataURL("image/png");
     },

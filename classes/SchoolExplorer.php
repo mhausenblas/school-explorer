@@ -538,15 +538,21 @@ EOD;
 
         $religionGraph = '';
         if (!empty($religion)) {
-            if (array_key_exists($religion, $this->config['religions'])) {
-                $religionGraph = "$school sch-ont:religiousCharacter <".$this->config['religions'][$religion].'> .';
-            }
-            else {
-                $religionGraph = "$school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_".$religion.' .';
-            }
+#            if (array_key_exists($religion, $this->config['religions'])) {
+#                $religionGraph = "$school sch-ont:religiousCharacter <".$this->config['religions'][$religion].'> .';
+#            }
+#            else {
+#                $religionGraph = "$school sch-ont:religiousCharacter sch-ont:ReligiousCharacter_".$religion.' .';
+#            }
+             $religionGraph = "$school sch-ont:religiousCharacter <".rawurldecode($religion).'> .';
         }
 
-        $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? "$school sch-ont:gender <".$this->config['genders'][$gender].$gender.'> .' : '';
+
+#        $genderGraph = (!empty($gender) && array_key_exists($gender, $this->config['genders'])) ? "$school sch-ont:gender <".$this->config['genders'][$gender].$gender
+        $genderGraph = '';
+        if (!empty($gender)) {
+            $genderGraph = "$school sch-ont:gender <".rawurldecode($gender).'> .';
+        }
 
         $enrolmentGraph = <<<EOD
             ?observation
