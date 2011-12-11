@@ -59,7 +59,31 @@ var SE = { // School Explorer
         SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
 
         MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
-        GM_MARKER_SIZE : { width: 16, height: 24 }
+        GM_MARKER_SIZE : { width: 16, height: 24 },
+
+        SCHOOL_YEARS : {
+            "http://data-gov.ie/number-of-pre-zero-students" : { label : "0", year: "pre_school", value : 0 },
+            "http://data-gov.ie/number-of-pre-first-students" : { label : "1", year: "pre_school", value : 0 },
+            "http://data-gov.ie/number-of-pre-second-students" : { label : "2", year: "pre_school", value : 0 },
+            "http://data-gov.ie/number-of-pre-third-students" : { label : "3", year: "pre_school", value : 0 },
+
+            "http://data-gov.ie/number-of-junior-infants-students" : { label : "J", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-senior-infants-students" : { label : "S", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-first-class-students" : { label : "1", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-second-class-students" : { label : "2", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-third-class-students" : { label : "3", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-fourth-class-students" : { label : "4", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-fifth-class-students" : { label : "5", year: "primary_school", value : 0 },
+            "http://data-gov.ie/number-of-sixth-class-students" : { label : "6", year: "primary_school", value : 0 },
+
+            //TODO: Rename 1st..5th to "first".."fifth" in store and update this.
+            "http://data-gov.ie/number-of-1st-year-students" : { label : "1", year: "secondary_school", value : 0 },
+            "http://data-gov.ie/number-of-2nd-year-students" : { label : "2", year: "secondary_school", value : 0 },
+            "http://data-gov.ie/number-of-3rd-year-students" : { label : "3", year: "secondary_school", value : 0 },
+            "http://data-gov.ie/number-of-TY-students" : { label : "T", year: "secondary_school", value : 0 },
+            "http://data-gov.ie/number-of-5th-year-students" : { label : "5", year: "secondary_school", value : 0 },
+            "http://data-gov.ie/number-of-6th-year-students" : { label : "6", year: "secondary_school", value : 0 }
+        }
     },
 
     G : { // SE-wide values
@@ -259,10 +283,10 @@ var SE = { // School Explorer
                             var schoolSymbol = SE.drawMarker(school_marker, school_state, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
                             SE.G.slist[row["school"].value] = row; // set up school look-up table
                             if(i < SE.C.MAX_SCHOOL_LISTING) {
-                                buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
+                                buf.push("<div class='"+ SE.C.SCHOOL_LIST_ITEM_CLASS + "' about='" + row["school"].value + "'>");
                             }
                             else {
-                                buf.push("<div class='school_lst hidden' about='" + row["school"].value + "'>");
+                                buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS + " hidden' about='" + row["school"].value + "'>");
                             }
                             buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
                             buf.push("</div>");
@@ -314,7 +338,7 @@ var SE = { // School Explorer
 
         // show the hidden school infos ...
         $('#' + SE.C.SHOW_MORE_SCHOOLS).live('click', function(){
-            $('.school_lst.hidden').each(function(index) {
+            $('.' + SE.C.SCHOOL_LIST_ITEM_CLASS + '.hidden').each(function(index) {
                 $(this).removeClass('hidden');
             });
             $(this).html("");
@@ -446,10 +470,10 @@ console.log(data);
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
 
                         if(i < SE.C.MAX_SCHOOL_LISTING) {
-                            buf.push("<div class='school_lst' about='" + row["school"].value + "'>");
+                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS + "' about='" + row["school"].value + "'>");
                         }
                         else {
-                            buf.push("<div class='school_lst hidden' about='" + row["school"].value + "'>");
+                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS+ " hidden' about='" + row["school"].value + "'>");
                         }
                         buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
                         buf.push("</div>");
@@ -700,15 +724,15 @@ console.log(data);
     },
 
     drawMarker : function(school_marker, school_state, name, distance, religion, gender){
-        if(SE.C.DEBUG) {
-            console.log("--------");
-            console.log("school_marker: " + school_marker);
-            console.log("school_state: " + school_state);
-            console.log("name: " + name);
-            console.log("distance: " + distance);
-            console.log("religion: " + religion);
-            console.log("gender: " + gender);
-        }
+//        if(SE.C.DEBUG) {
+//            console.log("--------");
+//            console.log("school_marker: " + school_marker);
+//            console.log("school_state: " + school_state);
+//            console.log("name: " + name);
+//            console.log("distance: " + distance);
+//            console.log("religion: " + religion);
+//            console.log("gender: " + gender);
+//        }
 
         // see also http://www.html5canvastutorials.com/
         var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
@@ -796,19 +820,39 @@ console.log(data);
 
         // fill the two charts with data via API
         $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
+            gradeLabelsStats = [];
+
+            school_years = SE.C.SCHOOL_YEARS;
+
             $.each(data.data, function(i, grade){
-                var g = SE.cleangrades(grade.numberOfStudentsURI.value, grade.schoolGrade.value);
-                if(g){ // we have a valid grade (exluding totals such as boys, girls, etc.)
-                    xdata.push(g);
-                    ydata.push(parseInt(grade.numberOfStudents.value));
-                    totalCalculated = totalCalculated + parseInt(grade.numberOfStudents.value);
+                if (school_years[grade.numberOfStudentsURI.value]) {
+                    school_years[grade.numberOfStudentsURI.value].value = parseInt(grade.numberOfStudents.value);
+                    totalCalculated = totalCalculated + school_years[grade.numberOfStudentsURI.value].value;
                 }
-                else{ // extracting totals
-                    if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-students") total = parseInt(grade.numberOfStudents.value);
-                    if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-girl-students") totalGirls = parseInt(grade.numberOfStudents.value);
-                    if(grade.numberOfStudentsURI.value == "http://data-gov.ie/number-of-boy-students") totalBoys = parseInt(grade.numberOfStudents.value);
+                else {
+                    switch(grade.numberOfStudentsURI.value) {
+                        case "http://data-gov.ie/number-of-students":
+                            total = parseInt(grade.numberOfStudents.value);
+                            break;
+                        case "http://data-gov.ie/number-of-girl-students":
+                            totalGirls = parseInt(grade.numberOfStudents.value);
+                            break;
+                        case "http://data-gov.ie/number-of-boy-students":
+                            totalBoys = parseInt(grade.numberOfStudents.value);
+                            break;
+                        case "http://data-gov.ie/number-of-students-excluding-TY":
+                            totalExcludingTY = parseInt(grade.numberOfStudents.value);
+                        default:
+                            break;
+                    }
                 }
             });
+
+            $.each(school_years, function(index, o) {
+                xdata.push(o.label);
+                ydata.push(o.value);
+            });
+
             if(SE.C.DEBUG){
                 console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
             }
@@ -819,10 +863,10 @@ console.log(data);
                 title_size : 12,
                 legend : ['pupils'], 
                 axis_labels : xdata,
-                size : '240x150', 
+                size : '320x150',
                 type : 'bvg', 
                 colors : ['009933'],
-                bar_width : 25,
+                bar_width : 5,
                 // bar_spacing : 15
             }))).html());
             buf.push("<div class='chart_more'>Total: " +  total + " (" + totalCalculated +") | Girls: "  +  totalGirls + " | Boys: " +  totalBoys + "</div>");
@@ -871,16 +915,6 @@ console.log(data);
                 callback(buf.join(""));
             });
         });
-    },
-
-    cleangrades : function(gradeURI, grade) {
-        if(gradeURI.indexOf('st-') > 0 | gradeURI.indexOf('nd-')  > 0 | gradeURI.indexOf('rd-')  > 0 | gradeURI.indexOf('th-')  > 0) {
-            grade = grade.replace(/number of (.+) year students/i, "$1");
-        }
-        else {
-            grade = null;
-        }
-        return grade;
     }
 };
 
