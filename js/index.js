@@ -59,6 +59,7 @@ var SE = { // School Explorer
         SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
 
         MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
+        GM_MARKER_SIZE : { width: 16, height: 24 }
     },
 
     G : { // SE-wide values
@@ -606,7 +607,7 @@ console.log(data);
         var marker = new google.maps.Marker({
             position: new google.maps.LatLng(school["lat"].value, school["long"].value),
             map: SE.G.smap,
-            icon: new google.maps.MarkerImage(schoolSymbol, new google.maps.Size(15, 20)),
+            icon: new google.maps.MarkerImage(schoolSymbol, new google.maps.Size(SE.C.GM_MARKER_SIZE.width, SE.C.GM_MARKER_SIZE.height)),
             title: school["label"].value
         });
 
@@ -717,29 +718,32 @@ console.log(data);
         context.beginPath();
         context.strokeStyle = '#333';
         context.fillStyle = '#333';
-        context.moveTo(8, 16);
-        context.lineTo(8, 20);
+        context.moveTo(8, 17);
+        context.lineTo(8, 24);
         context.fill();
         context.lineWidth = 2;
         context.stroke();
 
         x = 0;
         y = 0;
-        width = 15;
-        height = 15;
+        width = 16;
+        height = 16;
         x_text = 5;
         y_text = 12;
 
+        SE.C.GM_MARKER_SIZE.width = 16;
+
         if(school_marker > 9) {
-            x = -17;
-            width = 33;
-            x_text = 2;
+            width = 18;
+            x_text = 3;
+            SE.C.GM_MARKER_SIZE.width = 33;
         }
 
         if(school_marker > 99) {
-            x = -20;
-            width = 40;
-            x_text = 1;
+            x = 0;
+            width = 24;
+            x_text = 3;
+            SE.C.GM_MARKER_SIZE.width = 48;
         }
 
         context.beginPath();
