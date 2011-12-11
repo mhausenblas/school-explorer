@@ -606,7 +606,7 @@ console.log(data);
         var marker = new google.maps.Marker({
             position: new google.maps.LatLng(school["lat"].value, school["long"].value),
             map: SE.G.smap,
-            icon: new google.maps.MarkerImage(schoolSymbol),
+            icon: new google.maps.MarkerImage(schoolSymbol, new google.maps.Size(15, 20)),
             title: school["label"].value
         });
 
@@ -713,26 +713,21 @@ console.log(data);
         var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
         var context = canvas.getContext('2d');
 
-        switch(school_state) {
-            case 'inapplicable': default:
-                context.strokeStyle = '#000';
-                context.fillStyle = '#000';
-                break;
-            case 'inrange':
-                context.strokeStyle = '#647819';
-                context.fillStyle = '#647819';
-                break;
-            case 'outofrange':
-                context.strokeStyle = '#777';
-                context.fillStyle = '#777';
-                break;
-        }
+        // create the pin
+        context.beginPath();
+        context.strokeStyle = '#333';
+        context.fillStyle = '#333';
+        context.moveTo(8, 16);
+        context.lineTo(8, 20);
+        context.fill();
+        context.lineWidth = 2;
+        context.stroke();
 
-        x = -15;
-        y = -15;
-        width = 30;
-        height = 30;
-        x_text = 4;
+        x = 0;
+        y = 0;
+        width = 15;
+        height = 15;
+        x_text = 5;
         y_text = 12;
 
         if(school_marker > 9) {
@@ -749,6 +744,20 @@ console.log(data);
 
         context.beginPath();
         context.rect(x, y, width, height);
+        switch(school_state) {
+            case 'inapplicable': default:
+                context.strokeStyle = '#000';
+                context.fillStyle = '#000';
+                break;
+            case 'inrange':
+                context.strokeStyle = '#647819';
+                context.fillStyle = '#647819';
+                break;
+            case 'outofrange':
+                context.strokeStyle = '#777';
+                context.fillStyle = '#777';
+                break;
+        }
         context.fill();
         context.stroke();
 
