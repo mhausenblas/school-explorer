@@ -121,3 +121,11 @@ Finalize dataset for school.
 
 ### Server
 Setup to include Apache, Fuseki, Lucene (LARQ)
+
+### TODO
+#### Data
+Add data (to RDF store) about the phase of education e.g., primary, secondary (post-primary), special, for each school.
+Add graph sch-ont to store.
+
+
+
