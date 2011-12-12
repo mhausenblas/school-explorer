@@ -520,16 +520,13 @@ EOD;
             OPTIONAL { $school sch-ont:address [ sch-ont:region [ skos:prefLabel ?region_label ] ] . }
             OPTIONAL { $school sch-ont:address [ sch-ont:region ?region ] . }
 
+            OPTIONAL { $school sch-ont:phaseOfEducation [ skos:prefLabel ?phaseOfEducation_label ] . }
+
             OPTIONAL { $school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
             OPTIONAL { $school sch-ont:gender ?gender . }
 
             OPTIONAL { $school sch-ont:religiousCharacter [ rdfs:label ?religion_label ] . }
             OPTIONAL { $school sch-ont:religiousCharacter ?religion . }
-
-            OPTIONAL {
-                $school sch-ont:phaseOfEducation ?phaseOfEducation .
-                ?phaseOfEducation skos:prefLabel ?phaseOfEducation_label .
-            }
 
             $bindSchool
 
