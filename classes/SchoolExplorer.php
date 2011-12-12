@@ -526,6 +526,11 @@ EOD;
             OPTIONAL { $school sch-ont:religiousCharacter [ rdfs:label ?religion_label ] . }
             OPTIONAL { $school sch-ont:religiousCharacter ?religion . }
 
+            OPTIONAL {
+                $school sch-ont:phaseOfEducation ?phaseOfEducation .
+                ?phaseOfEducation skos:prefLabel ?phaseOfEducation_label .
+            }
+
             $bindSchool
 
             OPTIONAL {
@@ -609,7 +614,7 @@ EOD;
             case 'near':
                 if (count($location) == 2) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?distance
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?phaseOfEducation_label ?region_label ?religion ?religion_label ?lat ?long ?distance
                         WHERE {
                             $schoolGraph
                             $religionGraph

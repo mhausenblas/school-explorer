@@ -653,9 +653,11 @@ console.log(data);
         buf.push("<div class='summary'>");
         buf.push("<span class='head'>Address:</span> " + school["address1"].value);
         if(school["address2"]) buf.push(" " + school["address2"].value);
-        if(school["region_label"]) buf.push(", " + school["region_label"].value + " | ");
-        else buf.push(" | ");
+        if(school["region_label"]) buf.push(", " + school["region_label"].value);
 
+        buf.push(" | ");
+
+        if(school["phaseOfEducation_label"]) buf.push("<span class='head'>Education:</span> " + school["phaseOfEducation_label"].value + " school | ");
         if(school["religion_label"]) buf.push("<span class='head'>Religion:</span> " + school["religion_label"].value.toLowerCase() + " | ");
         if(school["gender_label"]) buf.push("<span class='head'>Gender:</span> " + school["gender_label"].value.toLowerCase());
         buf.push("</div>"); // EO summary
