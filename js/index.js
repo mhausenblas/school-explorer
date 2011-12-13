@@ -828,8 +828,11 @@ console.log(data);
         var totalBoys = 0;
         var schoolID = school["school"].value;
 
-        var enrolment = $('<div class="enrolment"></div>');
-        var agegroups = $('<div class="agegroups"></div>');
+        //FIXME: This leads to constant writing to DOM while building the inner compoments. Refactor to append HTML string when ready.
+        $('#school_' + SE.getSchoolNotation(school)).append('<div class="enrolment processing"/>');
+        $('#school_' + SE.getSchoolNotation(school)).append('<div class="agegroups processing"/>');
+        var enrolment = $('#school_' + SE.getSchoolNotation(school) + ' .enrolment');
+        var agegroups = $('#school_' + SE.getSchoolNotation(school) + ' .agegroups');
 
         // fill the two charts with data via API
         $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
@@ -865,11 +868,11 @@ console.log(data);
                 xdata.push(o.label);
                 ydata.push(o.value);
             });
-
+/*
             if(SE.C.DEBUG){
                 console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
             }
-
+*/
             enrolment.append($('<img style="margin: 0 10px 10px 0">').attr('src', SE.G.chartAPI.make({
                 data : ydata,
                 title : 'Enrolment',
@@ -887,7 +890,10 @@ console.log(data);
             enrolment.append('<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>');
             enrolment.append('<div class="chart_more">Year: 2010 | Source: <a href="http://www.education.ie/" target="_blank">Dept. of Education</a></div>'); //  TODO: check if the year is correct
 
+            enrolment.removeClass('processing');
+
             xdata.length = 0; ydata.length = 0; // empty the data arrays
+
             $.getJSON(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID), function(data) { // get age groups near the school
 console.log(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID) + ":");
 console.log(data);
@@ -921,11 +927,10 @@ console.log(data);
                 }
 //TODO: not sure where to place this at this moment
 //                buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
+
+                agegroups.removeClass('processing');
             });
         });
-
-        $('#school_' + SE.getSchoolNotation(school)).append(enrolment);
-        $('#school_' + SE.getSchoolNotation(school)).append(agegroups);
     }
 };
 
