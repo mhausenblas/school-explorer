@@ -126,6 +126,7 @@ Setup to include Apache, Fuseki, Lucene (LARQ)
 #### Data
 Add data (to RDF store) about the phase of education e.g., primary, secondary (post-primary), special, for each school.
 Add graph sch-ont to store.
+Add skos:notation for school URIs
 
-
-
+#### Vocabulary/Ontology
+Review
