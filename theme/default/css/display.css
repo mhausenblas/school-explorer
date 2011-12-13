@@ -194,6 +194,7 @@ display: none;
 .school_info {
 padding:0;
 height: 280px;
+clear:both;
 }
 
 .school_info h2 {

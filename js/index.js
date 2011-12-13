@@ -636,35 +636,44 @@ console.log(data);
         });
 
         SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
+/*
         google.maps.event.addListener(marker, "click", function() {
             SE.renderSchool(school, function(iwcontent){
                 SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
             });
             SE.showSchoolContext(school["school"].value);
         });
+*/
+        SE.renderSchool(school);
+//        SE.renderStats();
     },
 
-    renderSchool : function(school, callback){
-        var buf = ["<div class='school_info'>"];
-        
-        SE.setSchoolURI(school["school"].value);
+    getSchoolNotation : function(school) {
+        //FIXME: This is a temporary heck until the data in the RDF store contains a literal for skos:notation. Otherwise, we just do school['notation']. For school URI "http://data-gov.ie/school/123456" , we get string after last /
+        return school['school'].value.substring(26);
+    },
 
-        buf.push("<h2>" + school["label"].value + "</h2>");
-        buf.push("<div class='summary'>");
-        buf.push("<span class='head'>Address:</span> " + school["address1"].value);
-        if(school["address2"]) buf.push(" " + school["address2"].value);
-        if(school["region_label"]) buf.push(", " + school["region_label"].value);
+    renderSchool : function(school){
+        school_info = '<div id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
 
-        buf.push(" | ");
+//        SE.setSchoolURI(school["school"].value);
 
-        if(school["phaseOfEducation_label"]) buf.push("<span class='head'>Education:</span> " + school["phaseOfEducation_label"].value + " school | ");
-        if(school["religion_label"]) buf.push("<span class='head'>Religion:</span> " + school["religion_label"].value.toLowerCase() + " | ");
-        if(school["gender_label"]) buf.push("<span class='head'>Gender:</span> " + school["gender_label"].value.toLowerCase());
-        buf.push("</div>"); // EO summary
+        school_info += '<h2>' + school["label"].value + '</h2>';
+        school_info += '<div class="summary">';
+        school_info += '<span class="head">Address:</span> ' + school["address1"].value;
+        if(school["address2"]) { school_info += ' ' + school["address2"].value; }
+        if(school["region_label"]) { school_info += ', ' + school["region_label"].value; }
 
-        callback(buf.join("")); // immediatly render what we have so far as rendering the stats might take a bit
-        
-        SE.renderStats(school, buf, callback); // render the enrollment stats
+        school_info += " | ";
+
+        if(school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
+        if(school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
+        if(school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
+        school_info += '</div>';
+
+        $('#' + SE.C.RESULT_ELEMENT_ID).append(school_info);
+
+        SE.renderStats(school); // render the enrollment stats
     },
 
     setSchoolURI : function(schoolID){
@@ -811,14 +820,16 @@ console.log(data);
         return SE.G.religionCCodes['others']; // all others are white
     },
 
-    renderStats : function(school, buf, callback){
-        buf.push("<div class='enrolment'>");
+    renderStats : function(school){
         var xdata = [], ydata = [];
         var total = 0;
         var totalCalculated = 0;
         var totalGirls = 0;
         var totalBoys = 0;
         var schoolID = school["school"].value;
+
+        var enrolment = $('<div class="enrolment"></div>');
+        var agegroups = $('<div class="agegroups"></div>');
 
         // fill the two charts with data via API
         $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
@@ -858,7 +869,8 @@ console.log(data);
             if(SE.C.DEBUG){
                 console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
             }
-            buf.push($('<div />').html($('<img style="margin: 0 10px 10px 0">').attr('src', SE.G.chartAPI.make({ 
+
+            enrolment.append($('<img style="margin: 0 10px 10px 0">').attr('src', SE.G.chartAPI.make({
                 data : ydata,
                 title : 'Enrolment',
                 title_color : '111', 
@@ -870,18 +882,15 @@ console.log(data);
                 colors : ['009933'],
                 bar_width : 5,
                 // bar_spacing : 15
-            }))).html());
-            buf.push("<div class='chart_more'>Total: " +  total + " (" + totalCalculated +") | Girls: "  +  totalGirls + " | Boys: " +  totalBoys + "</div>");
-            buf.push("<div class='chart_more'>Year: 2010 | Source: <a href='http://www.education.ie/' target='_blank'>Dept. of Education</a></div>"); //  TODO: check if the year is correct
+            })));
 
-            buf.push("</div>"); // EO enrolment
-
-            callback(buf.join("")); // immediatly render what we have so far 
+            enrolment.append('<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>');
+            enrolment.append('<div class="chart_more">Year: 2010 | Source: <a href="http://www.education.ie/" target="_blank">Dept. of Education</a></div>'); //  TODO: check if the year is correct
 
             xdata.length = 0; ydata.length = 0; // empty the data arrays
-
-            buf.push("<div class='agegroups'>");
             $.getJSON(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID), function(data) { // get age groups near the school
+console.log(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID) + ":");
+console.log(data);
                 if(data.data.length > 0){
                     totalCalculated = 0;
                     $.each(data.data, function(i, agegroup){
@@ -893,7 +902,7 @@ console.log(data);
                         console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
                     }
                     SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
-                    buf.push($('<div />').append($('<img style="margin: 0 0 10px 0">').attr('src', SE.G.chartAPI.make({ 
+                    agegroups.append($('<img style="margin: 0 0 10px 0">').attr('src', SE.G.chartAPI.make({
                         data : ydata,
                         title       : 'Demographics',
                         title_color : '111', 
@@ -903,20 +912,20 @@ console.log(data);
                         size : '240x150', 
                         type : 'bvg',
                         colors : ['003399']
-                    }))).html());
-                    buf.push("<div class='chart_more'>Total: " + totalCalculated + "</div>");
-                    buf.push("<div class='chart_more'>Year: 2006 | Source: <a href='http://cso.ie/' target='_blank'>CSO</a>, Census</div>");
-
-                    buf.push("</div>"); // EO age groups
+                    })));
+                    agegroups.append('<div class="chart_more">Total: ' + totalCalculated + '</div>');
+                    agegroups.append('<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>');
                 }
                 else {
-                    buf.push("<p class='no_stats'>No demographics available for this area, sorry ...</p></div>"); // EO age groups
+                   agegroups = $('<div class="agegroups"><p class="no_stats">No demographics available for this area, sorry ...</p></div>');
                 }
-                buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
-                buf.push("</div>"); // EO school_info 
-                callback(buf.join(""));
+//TODO: not sure where to place this at this moment
+//                buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
             });
         });
+
+        $('#school_' + SE.getSchoolNotation(school)).append(enrolment);
+        $('#school_' + SE.getSchoolNotation(school)).append(agegroups);
     }
 };
 
