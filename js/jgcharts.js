@@ -76,7 +76,11 @@ jGCharts.Api = function(){
     var _axis_step = 1;
     //  axis type  default value
     var _axis_type = "x,y";
-    
+    //  axis range  default value
+    var _axis_range = "default";
+
+    var _scaling = 'a';
+
     //  background  default value
     var _bg = false;
     var _chbg = false;
@@ -233,16 +237,18 @@ jGCharts.Api = function(){
         // io me li aspetto per riga
         
         for(var y=0;y < _cols.length;y++){
-        	//_ret += _cols[y].join(",") + "|";
-        	_ret += simpleEncode(_cols[y],_max)  + ",";   
+        _ret += _cols[y].join(",") + "|";
+        //	_ret += simpleEncode(_cols[y],_max)  + ",";
             //    console.log(_cols[y].join(",") + "|");
         }
         //console.log(_cols);
-        //_ret = _rlasttrim(_ret,"|");
+        _ret = _rlasttrim(_ret,"|");
         _ret = _rlasttrim(_ret,",");
         //console.log(_ret);
+        return "t:" + _ret;
+
         //_ret = "cefhjkqwrlgYcfgc,QSSVXXdkfZUMRTUQ,HJJMOOUbVPKDHKLH";
-        return "s:" + _ret; 
+        //return "s:" + _ret;
     }
     function _fill_bottom(_data){
     	var _min_serie = [];
@@ -281,8 +287,8 @@ jGCharts.Api = function(){
     // Data scaling    [all - no: Maps] OK chds
     // chds=<data set 1 minimum value>,<data set 1 maximum value>,<data set n minimum value>,<data set n maximum value>
     // maximum : omit to specify 100
-    function _scaling(){
-    	return _min + "," + _max;
+    function _eval_scaling(){
+        return _scaling;
     }
     // call by _data()
     function _set_max(val){
@@ -305,8 +311,12 @@ jGCharts.Api = function(){
            if(_min > val)
                _min = val; 
     }
-    function _axis_range(){
-        return "0,"+_min+","+ _max +"|1,"+_min+"," + _max;//?
+    function _eval_axis_range(){
+        if (_axis_range == 'default') {
+            return "0,"+_min+","+ _max +"|1,"+_min+"," + _max;//?
+        }
+
+        return _axis_range;
     }
     // ------------------------------------------------
     // TODO: Pie chart and Google-o-meter labels [only bar e g-o-m]
@@ -516,7 +526,11 @@ jGCharts.Api = function(){
     	//axis - TODO?
     	if(options.axis_type)
     		_axis_type = options.axis_type;
-    		
+        if(options.axis_range)
+            _axis_range = options.axis_range;
+        if(options.scaling)
+            _scaling = options.scaling;
+
     	//style 
     	if(options.bg)
     		_bg = options.bg;
@@ -608,8 +622,8 @@ jGCharts.Api = function(){
 				url += _param("legend", _eval_legend());
             
             url += _param("data", _eval_data());
-            url += _param("scaling", _scaling());
-            url += _param("axis_range", _axis_range());
+            url += _param("scaling", _eval_scaling());
+            url += _param("axis_range", _eval_axis_range());
             url += _param("axis_labels", _eval_labels());
             url += _param("background", _background()); 
             url += _param("colors", _color());
@@ -625,6 +639,7 @@ jGCharts.Api = function(){
             
             url += _param("agent", "jgcharts", true);	 
             //console.log(options.colors);
+
             return url;
         }       
         

@@ -694,7 +694,7 @@ console.log(data);
         }
         else{ // trigger school listing
             SE.G.currentMode = SE.C.SCHOOL_LISTING_MODE;
-            window.location = SE.C.BASE_URI + "#";
+//            window.location = SE.C.BASE_URI + "#";
             SE.renderSchoolOverview(); // show some overview stats and examples
         }
         if(SE.C.DEBUG) console.log("School explorer opening in " + SE.G.currentMode + " mode ..."); 
@@ -830,8 +830,12 @@ console.log(data);
         $('#school_' + SE.getSchoolNotation(school)).append('<div class="enrolment processing"/>');
         $('#school_' + SE.getSchoolNotation(school)).append('<div class="agegroups processing"/>');
 
-        // fill the two charts with data via API
         $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
+            if(SE.C.DEBUG){
+                console.log(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID) + ":");
+                console.log(data);
+            }
+
             enrolment = '';
             xdata = [], ydata = [];
 
@@ -875,13 +879,14 @@ console.log(data);
                 title : 'Enrolment',
                 title_color : '111', 
                 title_size : 12,
-                legend : ['Students'],
+                legend : ['Population'],
                 axis_labels : xdata,
                 size : '340x150',
                 type : 'bvg', 
                 colors : ['009933'],
                 bar_width : 5,
-                // bar_spacing : 15
+                axis_range : '1,0,150',
+                scaling : '0,150'
             }) + '"/>';
 
             enrolment += '<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>';
@@ -892,33 +897,38 @@ console.log(data);
             $('#school_' + SE.getSchoolNotation(school) + ' .enrolment').removeClass('processing');
 
             $.getJSON(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID), function(data) { // get age groups near the school
-console.log(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID) + ":");
-console.log(data);
+                if(SE.C.DEBUG){
+                    console.log(SE.C.AGEGROUPS_API_BASE + encodeURIComponent(schoolID) + ":");
+                    console.log(data);
+                }
+
                 agegroups = '';
                 xdata = [], ydata = [];
 
                 if(data != null && data.data.length > 0){
                     totalCalculated = 0;
                     $.each(data.data, function(i, agegroup){
-                        xdata.push(agegroup.age_label.value + 'y');
+                        xdata.push(agegroup.age_label.value);
                         ydata.push(parseInt(agegroup.population.value));
                         totalCalculated = totalCalculated + parseInt(agegroup.population.value);
                     });
-                    if(SE.C.DEBUG){
-                        console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
-                    }
+//                    if(SE.C.DEBUG){
+//                        console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
+//                    }
                     SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
                     agegroups += '<img src="' + SE.G.chartAPI.make({
                         data : ydata,
                         title       : 'Demographics',
                         title_color : '111', 
                         title_size  : 12,
-                        legend :  ['Age'],
+                        legend :  ['Population'],
                         axis_labels : xdata, 
                         size : '340x150',
                         type : 'bvg',
                         colors : ['003399'],
                         bar_width : 5,
+                        axis_range : '1,0,150',
+                        scaling : '0,150'
                     }) + '"/>';
                     agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
                     agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
