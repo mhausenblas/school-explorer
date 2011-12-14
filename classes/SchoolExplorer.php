@@ -656,21 +656,19 @@ EOD;
             case 'agegroups':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT ?age ?age_label ?population
+                        SELECT ?age_label ?population
                         WHERE {
                             <$schoolId>
                                 a sch-ont:School ;
                                 dcterms:isPartOf ?geoArea .
                             ?observation
-                                qb:dataSet <http://stats.data-gov.ie/data/persons-by-gender-and-age> ;
                                 property:geoArea ?geoArea ;
                                 sdmx-dimension:sex sdmx-code:sex-T ;
-                                property:age1 ?age .
-                            ?age skos:notation ?age_label .
-                            FILTER (xsd:integer(?age_label) >= 0 && xsd:integer(?age_label) <= 5)
+                                property:age1 [ skos:notation ?age_label ] ;
+                            FILTER (xsd:integer(?age_label) <= 5)
                             ?observation property:population ?population .
                         }
-                        ORDER BY ?age
+                        ORDER BY xsd:integer(?age_label)
 
 EOD;
                     $uri = $this->buildQueryURI($query);
