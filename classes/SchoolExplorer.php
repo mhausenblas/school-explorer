@@ -665,7 +665,7 @@ EOD;
                                 property:geoArea ?geoArea ;
                                 sdmx-dimension:sex sdmx-code:sex-T ;
                                 property:age1 [ skos:notation ?age_label ] ;
-                            FILTER (xsd:integer(?age_label) <= 5)
+                            FILTER (xsd:integer(?age_label) <= 18)
                             ?observation property:population ?population .
                         }
                         ORDER BY xsd:integer(?age_label)
