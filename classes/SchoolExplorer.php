@@ -639,7 +639,9 @@ EOD;
                     $query = <<<EOD
                         SELECT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
                         WHERE {
-                            $schoolGraph
+                            <$schoolId>
+                                a sch-ont:School .
+
                             $enrolmentGraph
                         }
                         ORDER BY str(?numberOfStudentsURI)
