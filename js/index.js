@@ -195,14 +195,13 @@ var SE = { // School Explorer
         SE.G.chartAPI = new jGCharts.Api();
         SE.initResultsPanel();
         SE.initLegendPanel();
-        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
-            SE.handleSchoolDetailMode();
-            }
+//        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
+//            SE.handleSchoolDetailMode();
+//            }
         SE.handleInteraction();
     },
-
-
-    initResultsPanel : function(){
+/*
+    initNearbyPanel : function(){
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
                 value: SE.C.DEFAULT_SEARCH_RADIUS,
                 min: SE.C.MIN_SEARCH_RADIUS,
@@ -218,6 +217,11 @@ var SE = { // School Explorer
                 }
         });
         $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
+    },
+*/
+
+    initResultsPanel : function() {
+    
     },
 
     initLegendPanel : function(){
@@ -457,7 +461,7 @@ console.log(data);
                     // create the map centered on the location of the address
                     SE.initMap(lat, lng);
 
-                    buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
+//                    buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
 
                     var counter = 0;
                     for(i in rows) {
@@ -467,20 +471,22 @@ console.log(data);
 
                         var school_marker = (school_state == 'inrange') ? ++counter : 0;
                         var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+                        SE.addSchoolMarker(row, schoolSymbol);
+                        SE.renderSchool(row, schoolSymbol);
 
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
 
-                        if(i < SE.C.MAX_SCHOOL_LISTING) {
-                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS + "' about='" + row["school"].value + "'>");
-                        }
-                        else {
-                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS+ " hidden' about='" + row["school"].value + "'>");
-                        }
-                        buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
-                        buf.push("</div>");
-                        SE.addSchoolMarker(row, schoolSymbol);
+//                        if(i < SE.C.MAX_SCHOOL_LISTING) {
+//                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS + "' about='" + row["school"].value + "'>");
+//                        }
+//                        else {
+//                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS+ " hidden' about='" + row["school"].value + "'>");
+//                        }
+//                        buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
+//                        buf.push("</div>");
+
                     }
-                    $('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
+//                    $('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
                 }
             });
         });
@@ -645,7 +651,7 @@ console.log(data);
             SE.showSchoolContext(school["school"].value);
         });
 */
-        SE.renderSchool(school);
+
 //        SE.renderStats();
     },
 
@@ -654,12 +660,10 @@ console.log(data);
         return school['school'].value.substring(26);
     },
 
-    renderSchool : function(school){
+    renderSchool : function(school, schoolSymbol){
         school_info = '<div id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
 
-//        SE.setSchoolURI(school["school"].value);
-
-        school_info += '<h2>' + school["label"].value + '</h2>';
+        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + school["label"].value + '</h2>';
         school_info += '<div class="summary">';
         school_info += '<span class="head">Address:</span> ' + school["address1"].value;
         if(school["address2"]) { school_info += ' ' + school["address2"].value; }
@@ -770,20 +774,19 @@ console.log(data);
         SE.C.GM_MARKER_SIZE.width = 16;
 
         if(school_marker > 9) {
-            width = 18;
+            SE.C.GM_MARKER_SIZE.width = 18;
             x_text = 3;
-            SE.C.GM_MARKER_SIZE.width = 33;
         }
 
         if(school_marker > 99) {
             x = 0;
-            width = 24;
+            SE.C.GM_MARKER_SIZE.width = 24;
             x_text = 3;
-            SE.C.GM_MARKER_SIZE.width = 48;
         }
 
         context.beginPath();
-        context.rect(x, y, width, height);
+console.log(x + " " + y + " " + SE.C.GM_MARKER_SIZE.width + " " + height);
+        context.rect(x, y, SE.C.GM_MARKER_SIZE.width, height);
         switch(school_state) {
             case 'inapplicable': default:
                 context.strokeStyle = '#000';
@@ -807,6 +810,9 @@ console.log(data);
             context.fillText(i, x_text, y_text);
         }
 
+        //FIXME: Why bother? This doesn't get cached!
+        //TODO: Best is to skip image based markers and use simple text based (if possible) since we are only displaying numbers with a background colour.
+console.log(canvas.toDataURL("image/png"));
         return canvas.toDataURL("image/png");
     },
 

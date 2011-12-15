@@ -209,6 +209,12 @@ text-shadow:1px 1px 1px #eee;
 margin: .3em 0 .1em 0;
 }
 
+.school_info h2 img {
+float:none;
+margin:0 -10px -46px 0;
+display:inline-block;
+}
+
 .school_info .summary {
 font-size: 8pt;
 color: #606060;
