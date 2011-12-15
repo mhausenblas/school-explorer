@@ -785,7 +785,6 @@ console.log(data);
         }
 
         context.beginPath();
-console.log(x + " " + y + " " + SE.C.GM_MARKER_SIZE.width + " " + height);
         context.rect(x, y, SE.C.GM_MARKER_SIZE.width, height);
         switch(school_state) {
             case 'inapplicable': default:
@@ -807,12 +806,11 @@ console.log(x + " " + y + " " + SE.C.GM_MARKER_SIZE.width + " " + height);
         if(school_marker > 0) {
             context.fillStyle = '#fff';
             context.font = "8pt monospace";
-            context.fillText(i, x_text, y_text);
+            context.fillText(school_marker, x_text, y_text);
         }
 
         //FIXME: Why bother? This doesn't get cached!
         //TODO: Best is to skip image based markers and use simple text based (if possible) since we are only displaying numbers with a background colour.
-console.log(canvas.toDataURL("image/png"));
         return canvas.toDataURL("image/png");
     },
 
