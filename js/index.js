@@ -878,7 +878,7 @@ console.log(data);
             enrolment += '<img src="' + SE.G.chartAPI.make({
                 data : ydata,
                 title : 'Enrolment',
-                title_color : '111', 
+                title_color : '111111',
                 title_size : 12,
                 legend : ['Population'],
                 axis_labels : xdata,
@@ -886,8 +886,8 @@ console.log(data);
                 type : 'bvg', 
                 colors : ['009933'],
                 bar_width : 5,
-                axis_range : '1,0,150',
-                scaling : '0,150'
+                axis_range : '1,0,300',
+                scaling : '0,300'
             }) + '"/>';
 
             enrolment += '<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>';
@@ -920,7 +920,7 @@ console.log(data);
                     agegroups += '<img src="' + SE.G.chartAPI.make({
                         data : ydata,
                         title       : 'Demographics',
-                        title_color : '111', 
+                        title_color : '111111',
                         title_size  : 12,
                         legend :  ['Population'],
                         axis_labels : xdata, 
@@ -928,8 +928,8 @@ console.log(data);
                         type : 'bvg',
                         colors : ['003399'],
                         bar_width : 5,
-                        axis_range : '1,0,150',
-                        scaling : '0,150'
+                        axis_range : '1,0,300',
+                        scaling : '0,300'
                     }) + '"/>';
                     agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
                     agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
