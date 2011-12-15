@@ -619,7 +619,7 @@ EOD;
                             BIND ((afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) * 100) AS ?distance)
                         }
                         ORDER BY ?distance
-                        LIMIT 50
+                        LIMIT 10
 EOD;
                     $uri = $this->buildQueryURI($query);
 
@@ -639,7 +639,7 @@ EOD;
                     $query = <<<EOD
                         SELECT ?numberOfStudents ?numberOfStudentsURI ?schoolGrade
                         WHERE {
-                            <$schoolId>
+                            $school
                                 a sch-ont:School .
 
                             $enrolmentGraph
@@ -657,21 +657,28 @@ EOD;
 
             case 'agegroups':
                 if (!empty($schoolId)) {
-                    $query = <<<EOD
-                        SELECT ?age_label ?population
-                        WHERE {
-                            <$schoolId>
-                                a sch-ont:School ;
-                                dcterms:isPartOf ?geoArea .
-                            ?observation
-                                property:geoArea ?geoArea ;
-                                sdmx-dimension:sex sdmx-code:sex-T ;
-                                property:age1 [ skos:notation ?age_label ] ;
-                            FILTER (xsd:integer(?age_label) <= 18)
-                            ?observation property:population ?population .
-                        }
-                        ORDER BY xsd:integer(?age_label)
+                    $schools = explode(" ", $schoolId);
+                    $schoolsGraph = array();
+                    foreach($schools as $s) {
+                        $schoolsGraph[] = "{ OPTIONAL { <$s> a sch-ont:School ; dcterms:isPartOf ?geoArea . } } ";
+                    }
+                    $schoolsGraph = implode(" UNION ", $schoolsGraph);
 
+                    $query = <<<EOD
+                        SELECT ?age_label (SUM(?p) AS ?population)
+                        WHERE {
+                            $schoolsGraph
+                        ?observation
+                            property:geoArea ?geoArea ;
+                            sdmx-dimension:sex sdmx-code:sex-T ;
+                            property:age1 [ skos:notation ?age_label ] ;
+
+                        FILTER (xsd:integer(?age_label) <= 18)
+
+                        ?observation property:population ?p .
+                        }
+                        GROUP BY ?age_label
+                        ORDER BY xsd:integer(?age_label)
 EOD;
                     $uri = $this->buildQueryURI($query);
 
