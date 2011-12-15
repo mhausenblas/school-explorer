@@ -2,6 +2,7 @@
  * @category  UI interaction
  * @package   
  * @author    Michael Hausenblas <michael.hausenblas@deri.org>
+ * @author    Sarven Capadisli <sarven.capadisli@deri.org>
  * @copyright Public Domain
  * @license   
  * @link      http://deri.ie/
