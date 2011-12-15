@@ -243,7 +243,7 @@ jGCharts.Api = function(){
         }
         //console.log(_cols);
         _ret = _rlasttrim(_ret,"|");
-        _ret = _rlasttrim(_ret,",");
+//        _ret = _rlasttrim(_ret,",");
         //console.log(_ret);
         return "t:" + _ret;
 
