@@ -127,7 +127,6 @@ Setup to include Apache, Fuseki, Lucene (LARQ)
 Add data (to RDF store) about the phase of education e.g., primary, secondary (post-primary), special, for each school.
 Add graph sch-ont to store.
 Add skos:notation for school URIs
-Replace URIs like http://stats.data-gov.ie/codelist/geo/census-2006/city/galway/ea/041-039 with http://stats.data-gov.ie/codelist/census-2006/city/galway/ea/041-039 - Remove 'geo' from path.
 
 #### Vocabulary/Ontology
 Review
