@@ -658,16 +658,20 @@ EOD;
             case 'agegroups':
                 if (!empty($schoolId)) {
                     $schools = explode(" ", $schoolId);
-                    $schoolsGraph = array();
+                    $schoolsFilter = array();
                     foreach($schools as $s) {
-                        $schoolsGraph[] = "{ OPTIONAL { <$s> a sch-ont:School ; dcterms:isPartOf ?geoArea . } } ";
+                        if (!empty($s)) {
+                            $schoolsFilter[] = "?school = <$s>";
+                        }
                     }
-                    $schoolsGraph = implode(" UNION ", $schoolsGraph);
+                    $schoolsFilter = 'FILTER ('.implode(" || ", $schoolsFilter).')';
 
                     $query = <<<EOD
                         SELECT ?age_label (SUM(?p) AS ?population)
                         WHERE {
-                            $schoolsGraph
+                            ?school a sch-ont:School ;
+                                    dcterms:isPartOf ?geoArea .
+                            $schoolsFilter
                         ?observation
                             property:geoArea ?geoArea ;
                             sdmx-dimension:sex sdmx-code:sex-T ;
