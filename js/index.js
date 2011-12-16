@@ -58,6 +58,8 @@ var SE = { // School Explorer
         CLOSE_ALL_INFO_WINDOW : "close_iw", // the @id of the 'close info window' element
         STOP_BOUNCE : "stop_bounce", // the @id of the 'stop bouncing' element
         SHOW_NEARBY : "show_nearby", // the @class of a show nearby element
+        SCHOOL_ENROLMENT_ELEMENT_ID : "school_enrolment",
+        AGEGROUPS_ELEMENT_ID : 'agegroups',
 
         MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
         GM_MARKER_SIZE : { width: 16, height: 24 },
@@ -450,7 +452,6 @@ var SE = { // School Explorer
 
             $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function(data, textStatus){
                 if(data.data) {
-//                    var buf = [""];
                     var rows = data.data;
 console.log('showSchools()');
 console.log('data:');
@@ -461,8 +462,6 @@ console.log(data);
                     // create the map centered on the location of the address
                     SE.initMap(lat, lng);
 
-//                    buf.push("<div id='ctrl'><span id='close_iw'>Close info windows on map</span><span id='stop_bounce'>Stop bouncing</span><span id='show_more_schools'>More schools ...</span></div>");
-
                     var schoolURIs = [];
                     $.each(rows, function(i, s) {
                         schoolURIs.push(encodeURIComponent(s["school"].value));
@@ -470,58 +469,52 @@ console.log(data);
 
                     schoolURIs = schoolURIs.join('+');
 
-console.log("schoolURIs: ");
-console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs);
+                    $('#'+SE.C.RESULT_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
+                    $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
+                        if(SE.C.DEBUG){
+                            console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
+                            console.log(data);
+                        }
 
-            $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
-                if(SE.C.DEBUG){
-                    console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
-                    console.log(data);
-                }
+                        xdata = [], ydata = [];
 
-                agegroups = '';
-                xdata = [], ydata = [];
+                        agegroups = '';
+                        if(data != null && data.data.length > 0){
+                            totalCalculated = 0;
+                            $.each(data.data, function(i, agegroup){
+                                xdata.push(agegroup.age_label.value);
+                                ydata.push(parseInt(agegroup.population.value));
+                                totalCalculated = totalCalculated + parseInt(agegroup.population.value);
+                            });
+//                            if(SE.C.DEBUG){
+//                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
+//                            }
+                            SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
+                            agegroups += '<img src="' + SE.G.chartAPI.make({
+                                data : ydata,
+                                title       : 'Demographics',
+                                title_color : '111111',
+                                title_size  : 12,
+                                legend :  ['Population'],
+                                axis_labels : xdata,
+                                size : '380x150',
+                                type : 'bvg',
+                                colors : ['003399'],
+                                bar_width : 5,
+                                axis_range : '1,0,300',
+                                scaling : '0,300'
+                            }) + '"/>';
+                            agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
+                            agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
+                        }
+                        else {
+                           agegroups += '<p class="no_stats">No demographics available for this area, sorry ...</p>';
+                        }
 
-                if(data != null && data.data.length > 0){
-                    totalCalculated = 0;
-                    $.each(data.data, function(i, agegroup){
-                        xdata.push(agegroup.age_label.value);
-                        ydata.push(parseInt(agegroup.population.value));
-                        totalCalculated = totalCalculated + parseInt(agegroup.population.value);
+                        $('#'+SE.C.AGEGROUPS_ELEMENT_ID).append(agegroups);
                     });
-//                    if(SE.C.DEBUG){
-//                        console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
-//                    }
-                    SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
-                    agegroups += '<img src="' + SE.G.chartAPI.make({
-                        data : ydata,
-                        title       : 'Demographics',
-                        title_color : '111111',
-                        title_size  : 12,
-                        legend :  ['Population'],
-                        axis_labels : xdata, 
-                        size : '340x150',
-                        type : 'bvg',
-                        colors : ['003399'],
-                        bar_width : 5,
-                        axis_range : '1,0,300',
-                        scaling : '0,300'
-                    }) + '"/>';
-                    agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
-                    agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
-                }
-                else {
-                   agegroups += '<div class="agegroups"><p class="no_stats">No demographics available for this area, sorry ...</p></div>';
-                }
 
-//TODO: not sure where to place this at this moment
-//                buf.push("<div class='school_more'><a href='"+ schoolID +"' target='_new' title='The underlying data about the school'>Source Data</a></div>");
-
-                $('#content').prepend(agegroups);
-            });
-
-
-
+                    $('#'+SE.C.RESULT_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
                     var counter = 0;
                     for(i in rows) {
                         var row = rows[i];
@@ -535,17 +528,7 @@ console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs);
 
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
 
-//                        if(i < SE.C.MAX_SCHOOL_LISTING) {
-//                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS + "' about='" + row["school"].value + "'>");
-//                        }
-//                        else {
-//                            buf.push("<div class='" + SE.C.SCHOOL_LIST_ITEM_CLASS+ " hidden' about='" + row["school"].value + "'>");
-//                        }
-//                        buf.push("<img src='" + schoolSymbol +"' alt='school symbol'/>" + row["label"].value.substring(0, 14) + "... <div class='expand_school'>More ...</div>");
-//                        buf.push("</div>");
-
                     }
-//                    $('#' + SE.C.DETAILS_ELEMENT_ID).html(buf.join(""));
                 }
             });
         });
@@ -720,7 +703,7 @@ console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs);
     },
 
     renderSchool : function(school, schoolSymbol){
-        school_info = '<div id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
+        school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
 
         school_info += '<h2><img src="' + schoolSymbol +'"/> ' + school["label"].value + '</h2>';
         school_info += '<div class="summary">';
@@ -733,9 +716,9 @@ console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs);
         if(school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
         if(school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
         if(school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
-        school_info += '</div>';
+        school_info += '</li>';
 
-        $('#' + SE.C.RESULT_ELEMENT_ID).append(school_info);
+        $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
 
         SE.renderStats(school); // render the enrollment stats
     },

@@ -197,6 +197,11 @@ margin: 0 10px;
 display: none;
 }
 
+
+#school_enrolment {
+list-style-type:none;
+}
+
 .school_info {
 padding:0;
 height: 280px;
