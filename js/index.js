@@ -443,6 +443,8 @@ var SE = { // School Explorer
 
         SE.hideSchoolContext(); // make sure the previous school context is reset
 
+        $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+
         SE.position2Address(SE.I.SCHOOL_ADDRESS, function(lat, lng){ // get the location from address and show the 'nearby' schools
             if(SE.C.DEBUG){
                 console.log("For address [" + SE.I.SCHOOL_ADDRESS + "] I found the following location: [" + lat + "," + lng + "]");
@@ -469,7 +471,7 @@ console.log(data);
 
                     schoolURIs = schoolURIs.join('+');
 
-                    $('#'+SE.C.RESULT_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
+                    $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
                     $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
                         if(SE.C.DEBUG){
                             console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
@@ -497,7 +499,7 @@ console.log(data);
                                 title_size  : 12,
                                 legend :  ['Population'],
                                 axis_labels : xdata,
-                                size : '380x150',
+                                size : '360x150',
                                 type : 'bvg',
                                 colors : ['003399'],
                                 bar_width : 5,
@@ -514,7 +516,7 @@ console.log(data);
                         $('#'+SE.C.AGEGROUPS_ELEMENT_ID).append(agegroups);
                     });
 
-                    $('#'+SE.C.RESULT_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
+                    $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
                     var counter = 0;
                     for(i in rows) {
                         var row = rows[i];
@@ -527,7 +529,6 @@ console.log(data);
                         SE.renderSchool(row, schoolSymbol);
 
                         SE.G.slist[row["school"].value] = row; // set up school look-up table
-
                     }
                 }
             });
@@ -705,7 +706,7 @@ console.log(data);
     renderSchool : function(school, schoolSymbol){
         school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
 
-        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + school["label"].value + '</h2>';
+        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + school["school"].value + '">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
         school_info += '<span class="head">Address:</span> ' + school["address1"].value;
         if(school["address2"]) { school_info += ' ' + school["address2"].value; }
@@ -928,7 +929,7 @@ console.log(data);
                 title_size : 12,
                 legend : ['Population'],
                 axis_labels : xdata,
-                size : '340x150',
+                size : '360x150',
                 type : 'bvg', 
                 colors : ['009933'],
                 bar_width : 5,
