@@ -91,7 +91,7 @@ var SE = { // School Explorer
 
     G : { // SE-wide values
         smap : null, // the google.maps.Map object
-        smapWidth : 0.9, // the preferred width of the map
+        smapWidth : 0.6, // the preferred width of the map
         smapHeight : 1, // the preferred height of the map
         selectedZoomFactor : 11, // keeps track of the selected zoom factor ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
         genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
@@ -193,10 +193,10 @@ var SE = { // School Explorer
     },
 
     initMapPanel : function() {
-        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
+//        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
         SE.G.chartAPI = new jGCharts.Api();
         SE.initResultsPanel();
-        SE.initLegendPanel();
+//        SE.initLegendPanel();
 //        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
 //            SE.handleSchoolDetailMode();
 //            }
@@ -366,7 +366,7 @@ var SE = { // School Explorer
             $.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 500});
             
             // show the context of the school (street view and nearby POIs)
-            SE.showSchoolContext(schoolID);
+//            SE.showSchoolContext(schoolID);
 
             // stop bouncing of all markers and start bouncing of associated marker:
             $.each(SE.G.mlist, function(sID, marker){
@@ -438,10 +438,10 @@ var SE = { // School Explorer
     showSchools : function() {
         SE.initSchoolSearchValues();
 
-        $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
-        $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
+//        $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
+//        $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
 
-        SE.hideSchoolContext(); // make sure the previous school context is reset
+//        SE.hideSchoolContext(); // make sure the previous school context is reset
 
         $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 

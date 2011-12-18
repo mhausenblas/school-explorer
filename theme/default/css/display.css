@@ -142,6 +142,7 @@ color: #606060;
 #school_map {
 margin: 0;
 height: 500px;
+float:left;
 }
 
 #school_legend {
@@ -175,7 +176,7 @@ padding: .1em;
 
 #school_details{
 float: right;
-padding: 40px 0 0 0;
+width:360px;
 }
 
 .school_lst{
