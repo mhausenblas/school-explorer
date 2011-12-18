@@ -465,56 +465,65 @@ console.log(data);
                     SE.initMap(lat, lng);
 
                     var schoolURIs = [];
+                    var inRangeSchools = [];
+
                     $.each(rows, function(i, s) {
-                        schoolURIs.push(encodeURIComponent(s["school"].value));
+                        var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, s["religion"].value, s["gender"].value);
+
+                        if (school_state == 'inrange') {
+                            inRangeSchools.push(s['school'].value);
+                            schoolURIs.push(encodeURIComponent(s['school'].value));
+                        }
                     });
 
-                    schoolURIs = schoolURIs.join('+');
+                    if (inRangeSchools.length > 0) {
+                        schoolURIs = schoolURIs.join('+');
 
-                    $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
-                    $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
-                        if(SE.C.DEBUG){
-                            console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
-                            console.log(data);
-                        }
+                        $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
+                        $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
+                            if(SE.C.DEBUG){
+                                console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
+                                console.log(data);
+                            }
 
-                        xdata = [], ydata = [];
+                            xdata = [], ydata = [];
 
-                        agegroups = '';
-                        if(data != null && data.data.length > 0){
-                            totalCalculated = 0;
-                            $.each(data.data, function(i, agegroup){
-                                xdata.push(agegroup.age_label.value);
-                                ydata.push(parseInt(agegroup.population.value));
-                                totalCalculated = totalCalculated + parseInt(agegroup.population.value);
-                            });
-//                            if(SE.C.DEBUG){
-//                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
-//                            }
-                            SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
-                            agegroups += '<img src="' + SE.G.chartAPI.make({
-                                data : ydata,
-                                title       : 'Demographics',
-                                title_color : '111111',
-                                title_size  : 12,
-                                legend :  ['Population'],
-                                axis_labels : xdata,
-                                size : '360x150',
-                                type : 'bvg',
-                                colors : ['003399'],
-                                bar_width : 5,
-                                axis_range : '1,0,300',
-                                scaling : '0,300'
-                            }) + '"/>';
-                            agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
-                            agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
-                        }
-                        else {
-                           agegroups += '<p class="no_stats">No demographics available for this area, sorry ...</p>';
-                        }
+                            agegroups = '';
+                            if(data != null && data.data.length > 0){
+                                totalCalculated = 0;
+                                $.each(data.data, function(i, agegroup){
+                                    xdata.push(agegroup.age_label.value);
+                                    ydata.push(parseInt(agegroup.population.value));
+                                    totalCalculated = totalCalculated + parseInt(agegroup.population.value);
+                                });
+    //                            if(SE.C.DEBUG){
+    //                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
+    //                            }
+                                SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
+                                agegroups += '<img src="' + SE.G.chartAPI.make({
+                                    data : ydata,
+                                    title       : 'Demographics',
+                                    title_color : '111111',
+                                    title_size  : 12,
+                                    legend :  ['Population'],
+                                    axis_labels : xdata,
+                                    size : '360x150',
+                                    type : 'bvg',
+                                    colors : ['003399'],
+                                    bar_width : 5,
+                                    axis_range : '1,0,300',
+                                    scaling : '0,300'
+                                }) + '"/>';
+                                agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
+                                agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
+                            }
+                            else {
+                               agegroups += '<p class="no_stats">No demographics available for this area, sorry ...</p>';
+                            }
 
-                        $('#'+SE.C.AGEGROUPS_ELEMENT_ID).append(agegroups);
-                    });
+                            $('#'+SE.C.AGEGROUPS_ELEMENT_ID).append(agegroups);
+                        });
+                    }
 
                     $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
                     var counter = 0;
@@ -526,9 +535,12 @@ console.log(data);
                         var school_marker = (school_state == 'inrange') ? ++counter : 0;
                         var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
                         SE.addSchoolMarker(row, schoolSymbol);
-                        SE.renderSchool(row, schoolSymbol);
 
-                        SE.G.slist[row["school"].value] = row; // set up school look-up table
+                        if ($.inArray(row['school'].value, inRangeSchools) > 0) {
+                            SE.renderSchool(row, schoolSymbol);
+                        }
+
+//                        SE.G.slist[row["school"].value] = row; // set up school look-up table
                     }
                 }
             });
