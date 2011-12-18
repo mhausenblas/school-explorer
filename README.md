@@ -2,7 +2,7 @@
 
 ## What is the app about?
 
-Presents information about schools to help parents to decide where to send their kids to. It uses Open Data from the CSO and DE in Ireland.
+Presents information about schools to help parents to decide where to send their kids to. It uses Open Data from the CSO (Central Statistics Office http://cso.ie/ ) and DOES (Department of Education and Skills http://www.education.ie/ ) in Ireland.
 
 ## Application Setup
 
@@ -56,10 +56,11 @@ Example:
 
 
 ### Age groups
-Get upcoming age groups in school's area
+Get upcoming age groups for one or more schools' area
 
 Input
     agegroups?school_id=schoolURI (expecting schoolURI to be urlencoded)
+    agegroups?school_id=schoolURI+schoolURI (multiple schooLURIs are separated by +)
 
 Output
 Population for given area broken down for ages 0 to 5.
