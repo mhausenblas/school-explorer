@@ -639,6 +639,148 @@ console.log(data);
     },
 
 
+    addSchoolMarker : function(school, schoolSymbol){
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(school["lat"].value, school["long"].value),
+            map: SE.G.smap,
+            icon: new google.maps.MarkerImage(schoolSymbol, new google.maps.Size(SE.C.GM_MARKER_SIZE.width, SE.C.GM_MARKER_SIZE.height)),
+            title: school["label"].value
+        });
+
+        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
+/*
+        google.maps.event.addListener(marker, "click", function() {
+            SE.renderSchool(school, function(iwcontent){
+                SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
+            });
+            SE.showSchoolContext(school["school"].value);
+        });
+*/
+
+//        SE.renderStats();
+    },
+
+    getSchoolNotation : function(school) {
+        //FIXME: This is a temporary heck until the data in the RDF store contains a literal for skos:notation. Otherwise, we just do school['notation']. For school URI "http://data-gov.ie/school/123456" , we get string after last /
+        return school['school'].value.substring(26);
+    },
+
+    renderSchool : function(school, schoolSymbol){
+        school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
+
+        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + school["school"].value + '">' + school["label"].value + '</a></h2>';
+        school_info += '<div class="summary">';
+        school_info += '<span class="head">Address:</span> ' + school["address1"].value;
+        if(school["address2"]) { school_info += ' ' + school["address2"].value; }
+        if(school["region_label"]) { school_info += ', ' + school["region_label"].value; }
+
+        school_info += " | ";
+
+        if(school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
+        if(school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
+        if(school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
+        school_info += '</li>';
+
+        $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
+
+        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school)));
+    },
+
+    determineSchoolRangeState : function(label, distance, religion, gender) {
+        /*States: inapplicable, inrange, outofrange*/
+        school_state = 'inrange';
+
+        if (SE.I.SCHOOL_DISTANCE.length > 0 && parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
+            school_state = 'outofrange';
+        }
+
+        if (SE.I.SCHOOL_RELIGION.length > 0 && religion != SE.I.SCHOOL_RELIGION) {
+            school_state = 'inapplicable';
+        }
+
+        if (SE.I.SCHOOL_GENDER.length > 0 && gender != SE.I.SCHOOL_GENDER) {
+            school_state = 'inapplicable';
+        }
+
+       return school_state;
+    },
+
+    drawMarker : function(school_marker, school_state, name, distance, religion, gender){
+//        if(SE.C.DEBUG) {
+//            console.log("--------");
+//            console.log("school_marker: " + school_marker);
+//            console.log("school_state: " + school_state);
+//            console.log("name: " + name);
+//            console.log("distance: " + distance);
+//            console.log("religion: " + religion);
+//            console.log("gender: " + gender);
+//        }
+
+        // see also http://www.html5canvastutorials.com/
+        var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
+        var context = canvas.getContext('2d');
+
+        // create the pin
+        context.beginPath();
+        context.strokeStyle = '#333';
+        context.fillStyle = '#333';
+        context.moveTo(8, 17);
+        context.lineTo(8, 24);
+        context.fill();
+        context.lineWidth = 2;
+        context.stroke();
+
+        x = 0;
+        y = 0;
+        width = 16;
+        height = 16;
+        x_text = 5;
+        y_text = 12;
+
+        SE.C.GM_MARKER_SIZE.width = 16;
+
+        if(school_marker > 9) {
+            SE.C.GM_MARKER_SIZE.width = 18;
+            x_text = 3;
+        }
+
+        if(school_marker > 99) {
+            x = 0;
+            SE.C.GM_MARKER_SIZE.width = 24;
+            x_text = 3;
+        }
+
+        context.beginPath();
+        context.rect(x, y, SE.C.GM_MARKER_SIZE.width, height);
+        switch(school_state) {
+            case 'inapplicable': default:
+                context.strokeStyle = '#000';
+                context.fillStyle = '#000';
+                break;
+            case 'inrange':
+                context.strokeStyle = '#647819';
+                context.fillStyle = '#647819';
+                break;
+            case 'outofrange':
+                context.strokeStyle = '#777';
+                context.fillStyle = '#777';
+                break;
+        }
+        context.fill();
+        context.stroke();
+
+        if(school_marker > 0) {
+            context.fillStyle = '#fff';
+            context.font = "8pt monospace";
+            context.fillText(school_marker, x_text, y_text);
+        }
+
+        //FIXME: Why bother? This doesn't get cached!
+        //TODO: Best is to skip image based markers and use simple text based (if possible) since we are only displaying numbers with a background colour.
+        return canvas.toDataURL("image/png");
+    },
+
+
     showSchoolContext : function(schoolID){
         var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
         SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
@@ -781,58 +923,13 @@ console.log(data);
         });
     },
 
-    addSchoolMarker : function(school, schoolSymbol){
-        var marker = new google.maps.Marker({
-            position: new google.maps.LatLng(school["lat"].value, school["long"].value),
-            map: SE.G.smap,
-            icon: new google.maps.MarkerImage(schoolSymbol, new google.maps.Size(SE.C.GM_MARKER_SIZE.width, SE.C.GM_MARKER_SIZE.height)),
-            title: school["label"].value
-        });
-
-        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
-/*
-        google.maps.event.addListener(marker, "click", function() {
-            SE.renderSchool(school, function(iwcontent){
-                SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
-            });
-            SE.showSchoolContext(school["school"].value);
-        });
-*/
-
-//        SE.renderStats();
-    },
-
-    getSchoolNotation : function(school) {
-        //FIXME: This is a temporary heck until the data in the RDF store contains a literal for skos:notation. Otherwise, we just do school['notation']. For school URI "http://data-gov.ie/school/123456" , we get string after last /
-        return school['school'].value.substring(26);
-    },
-
-    renderSchool : function(school, schoolSymbol){
-        school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
-
-        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + school["school"].value + '">' + school["label"].value + '</a></h2>';
-        school_info += '<div class="summary">';
-        school_info += '<span class="head">Address:</span> ' + school["address1"].value;
-        if(school["address2"]) { school_info += ' ' + school["address2"].value; }
-        if(school["region_label"]) { school_info += ', ' + school["region_label"].value; }
-
-        school_info += " | ";
-
-        if(school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
-        if(school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
-        if(school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
-        school_info += '</li>';
-
-        $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
-
-        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school)));
-    },
 
     setSchoolURI : function(schoolID){
         var currentURL = document.URL;
         currentURL = currentURL.substring(0, currentURL.indexOf("#"));
         window.location = currentURL + "#" + schoolID.substring(schoolID.lastIndexOf("/") + 1 );
     },
+
 
     determineRenderMode : function(){
         var currentURL = document.URL;
@@ -865,100 +962,6 @@ console.log(data);
         infowindow.open(SE.G.smap, marker);
         $('#' + SE.C.CLOSE_ALL_INFO_WINDOW).show();
         return infowindow;
-    },
-
-    determineSchoolRangeState : function(label, distance, religion, gender) {
-        /*States: inapplicable, inrange, outofrange*/
-        school_state = 'inrange';
-
-        if (SE.I.SCHOOL_DISTANCE.length > 0 && parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
-            school_state = 'outofrange';
-        }
-
-        if (SE.I.SCHOOL_RELIGION.length > 0 && religion != SE.I.SCHOOL_RELIGION) {
-            school_state = 'inapplicable';
-        }
-
-        if (SE.I.SCHOOL_GENDER.length > 0 && gender != SE.I.SCHOOL_GENDER) {
-            school_state = 'inapplicable';
-        }
-
-       return school_state;
-    },
-
-    drawMarker : function(school_marker, school_state, name, distance, religion, gender){
-//        if(SE.C.DEBUG) {
-//            console.log("--------");
-//            console.log("school_marker: " + school_marker);
-//            console.log("school_state: " + school_state);
-//            console.log("name: " + name);
-//            console.log("distance: " + distance);
-//            console.log("religion: " + religion);
-//            console.log("gender: " + gender);
-//        }
-
-        // see also http://www.html5canvastutorials.com/
-        var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
-        var context = canvas.getContext('2d');
-
-        // create the pin
-        context.beginPath();
-        context.strokeStyle = '#333';
-        context.fillStyle = '#333';
-        context.moveTo(8, 17);
-        context.lineTo(8, 24);
-        context.fill();
-        context.lineWidth = 2;
-        context.stroke();
-
-        x = 0;
-        y = 0;
-        width = 16;
-        height = 16;
-        x_text = 5;
-        y_text = 12;
-
-        SE.C.GM_MARKER_SIZE.width = 16;
-
-        if(school_marker > 9) {
-            SE.C.GM_MARKER_SIZE.width = 18;
-            x_text = 3;
-        }
-
-        if(school_marker > 99) {
-            x = 0;
-            SE.C.GM_MARKER_SIZE.width = 24;
-            x_text = 3;
-        }
-
-        context.beginPath();
-        context.rect(x, y, SE.C.GM_MARKER_SIZE.width, height);
-        switch(school_state) {
-            case 'inapplicable': default:
-                context.strokeStyle = '#000';
-                context.fillStyle = '#000';
-                break;
-            case 'inrange':
-                context.strokeStyle = '#647819';
-                context.fillStyle = '#647819';
-                break;
-            case 'outofrange':
-                context.strokeStyle = '#777';
-                context.fillStyle = '#777';
-                break;
-        }
-        context.fill();
-        context.stroke();
-
-        if(school_marker > 0) {
-            context.fillStyle = '#fff';
-            context.font = "8pt monospace";
-            context.fillText(school_marker, x_text, y_text);
-        }
-
-        //FIXME: Why bother? This doesn't get cached!
-        //TODO: Best is to skip image based markers and use simple text based (if possible) since we are only displaying numbers with a background colour.
-        return canvas.toDataURL("image/png");
     },
 
     getGenderCoding : function(gender){
