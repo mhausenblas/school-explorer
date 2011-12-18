@@ -497,10 +497,12 @@ EOD;
 
         //TODO: Make this more abstract
         $location   = $this->getLocation($apiEKV);
-        $schoolId   = $this->getSchoolId($apiEKV);
-        $schoolName = $this->getSchoolName($apiEKV);
-        $religion   = $this->getReligion($apiEKV);
-        $gender     = $this->getGender($apiEKV);
+        $schoolId   = $this->getFormValue($apiEKV, 'school_id');
+        $schoolName = $this->getFormValue($apiEKV, 'school_name');
+        $religion   = $this->getFormValue($apiEKV, 'religion');
+        $gender     = $this->getFormValue($apiEKV, 'gender');
+        $distance   = $this->getFormValue($apiEKV, 'distance');
+        $age        = $this->getFormValue($apiEKV, 'age');
 
         if (!empty($schoolId)) {
             $school = "<$schoolId>";
@@ -780,40 +782,11 @@ EOD;
         return '1000';
     }
 
-    function getSchoolId($apiElementKeyValue)
+
+    function getFormValue($apiElementKeyValue, $key)
     {
-        if (isset($apiElementKeyValue['school_id']) && !empty($apiElementKeyValue['school_id'])) {
-            return urldecode(trim($apiElementKeyValue['school_id']));
-        }
-
-        return;
-    }
-
-
-    function getSchoolName($apiElementKeyValue)
-    {
-        if (isset($apiElementKeyValue['school_name']) && !empty($apiElementKeyValue['school_name'])) {
-            return urldecode(trim($apiElementKeyValue['school_name']));
-        }
-
-        return;
-    }
-
-
-    function getReligion($apiElementKeyValue)
-    {
-        if (isset($apiElementKeyValue['religion']) && !empty($apiElementKeyValue['religion'])) {
-            return trim($apiElementKeyValue['religion']);
-        }
-
-        return;
-    }
-
-
-    function getGender($apiElementKeyValue)
-    {
-        if (isset($apiElementKeyValue['gender']) && !empty($apiElementKeyValue['gender'])) {
-            return trim($apiElementKeyValue['gender']);
+        if (isset($apiElementKeyValue[$key]) && !empty($apiElementKeyValue[$key])) {
+            return urldecode(trim($apiElementKeyValue[$key]));
         }
 
         return;
