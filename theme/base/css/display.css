@@ -244,21 +244,28 @@ display:none;
 #form_search .form_data li {
 float:left;
 margin-left:0.5em;
-margin-bottom:0;
+margin-bottom:0.5em;
 list-style-type:none;
 }
 #form_search .form_data #address {
-width:250px;
+width:375px;
 }
 
 #form_search .form_data li:first-child {
 margin-left:0;
 }
 
-#form_search .form_data #form_distance .form_guide {
+#form_search .form_data .form_guide {
 display:none;
 }
 
+#form_search .form_data #form_age {
+clear:left;
+margin-left:0;
+}
+#form_search #form_submit {
+margin-top:-0.2em;
+}
 
 
 #wrap {

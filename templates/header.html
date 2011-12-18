@@ -24,21 +24,32 @@
                     <fieldset>
                         <legend>Search</legend>
                         <ul class="form_data">
-                            <li>
+                            <li id="form_address">
                                 <label for="address">Address</label>
                                 <input id="address" name="address" type="text" value="32 Bushypark Lawn, Galway, Ireland"/>
+                                <p class="form_guide">Enter your address to search for schools nearby</p>
                             </li>
                              <li id="form_distance">
                                 <label for="distance">Distance</label>
                                 <select id="distance" name="distance">
-                                    <option value="" selected="selected">Any</option>
+                                    <option value="">Any</option>
                                     <option value="1">1km</option>
-                                    <option value="5">5km</option>
+                                    <option value="5" selected="selected">5km</option>
                                     <option value="10">10km</option>
                                 </select>
                                 <p class="form_guide">Select a distance to search for schools nearby your address</p>
                             </li>
-                            <li>
+                             <li id="form_age">
+                                <label for="age">Age</label>
+                                <select id="age" name="age">
+                                    <option value="" selected="selected">Any</option>
+                                    <option value="3">0-3 [Pre-school]</option>
+                                    <option value="11">4-11 [Primary school]</option>
+                                    <option value="18">12-18 [Secondary secondary]</option>
+                                </select>
+                                <p class="form_guide">Select pupil's age for matching school's education phase</p>
+                            </li>
+                            <li id="form_religion">
                                 <label for="religion">Religion</label>
                                 <select id="religion" name="religion">
                                     <option value="" selected="selected">Any</option>
@@ -49,16 +60,18 @@
                                     <option value="http://data-gov.ie/school-religion/methodist">Methodist</option>
                                     <option value="http://data-gov.ie/school-religion/quaker">Quaker</option>
                                 </select>
+                                <p class="form_guide">Select a preferred religious denomination of a school</p>
                             </li>
-                            <li>
+                            <li id="form_gender">
                                 <label for="gender">Gender</label>
                                 <select id="gender" name="gender">
                                     <option value="http://education.data.gov.uk/ontology/school#Gender_Mixed" selected="selected">Mixed</option>
                                     <option value="http://education.data.gov.uk/ontology/school#Gender_Boys">Boys</option>
                                     <option value="http://education.data.gov.uk/ontology/school#Gender_Girls">Girls</option>
                                 </select>
+                                <p class="form_guide">Select a preferred gender of a school</p>
                             </li>
-                            <li>
+                            <li id="form_submit">
                                 <input type="button" id="find_school" class="submit" value="Find schools" />
                             </li>
                         </ul>

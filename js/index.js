@@ -166,17 +166,17 @@ var SE = { // School Explorer
 
     initSearchPanel : function(){
         $("#form_search #address").focus();
-        $("#form_search #form_distance").hover(function () {
+        $("#form_search .form_guide").parent().hover(function () {
             $(this).css({position:"relative"});
 
             form_guide = $(this).find(".form_guide");
             form_guide.css({
                 display: "block",
                 position: "absolute",
-                bottom: "-4.5em",
+                bottom: "-45px",
                 left: "0",
                 zIndex: "9",
-                width: "400px",
+                width: "430px",
                 border: "1px solid #aaa",
                 borderRadius: "7px",
                 fontSize: "0.9",

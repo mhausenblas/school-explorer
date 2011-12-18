@@ -199,6 +199,10 @@ display: none;
 }
 
 
+#agegroups {
+margin-bottom:1em;
+}
+
 #school_enrolment {
 list-style-type:none;
 }
