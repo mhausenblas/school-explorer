@@ -480,53 +480,13 @@ console.log(data);
                         schoolURIs = schoolURIs.join('+');
 
                         $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
-                        $.getJSON(SE.C.AGEGROUPS_API_BASE + schoolURIs, function(data) { // get age groups near the school
-                            if(SE.C.DEBUG){
-                                console.log(SE.C.AGEGROUPS_API_BASE + schoolURIs + " :");
-                                console.log(data);
-                            }
-
-                            xdata = [], ydata = [];
-
-                            agegroups = '';
-                            if(data != null && data.data.length > 0){
-                                totalCalculated = 0;
-                                $.each(data.data, function(i, agegroup){
-                                    xdata.push(agegroup.age_label.value);
-                                    ydata.push(parseInt(agegroup.population.value));
-                                    totalCalculated = totalCalculated + parseInt(agegroup.population.value);
-                                });
-    //                            if(SE.C.DEBUG){
-    //                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
-    //                            }
-                                SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
-                                agegroups += '<img src="' + SE.G.chartAPI.make({
-                                    data : ydata,
-                                    title       : 'Demographics',
-                                    title_color : '111111',
-                                    title_size  : 12,
-                                    legend :  ['Population'],
-                                    axis_labels : xdata,
-                                    size : '360x150',
-                                    type : 'bvg',
-                                    colors : ['003399'],
-                                    bar_width : 5,
-                                    axis_range : '1,0,300',
-                                    scaling : '0,300'
-                                }) + '"/>';
-                                agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
-                                agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
-                            }
-                            else {
-                               agegroups += '<p class="no_stats">No demographics available for this area, sorry ...</p>';
-                            }
-
-                            $('#'+SE.C.AGEGROUPS_ELEMENT_ID).append(agegroups);
-                        });
+                        SE.renderChart.ageGroups(SE.C.AGEGROUPS_API_BASE + schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
                     }
 
                     $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
+
                     var counter = 0;
+
                     for(i in rows) {
                         var row = rows[i];
 
@@ -536,7 +496,7 @@ console.log(data);
                         var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
                         SE.addSchoolMarker(row, schoolSymbol);
 
-                        if ($.inArray(row['school'].value, inRangeSchools) > 0) {
+                        if ($.inArray(row['school'].value, inRangeSchools) > -1) {
                             SE.renderSchool(row, schoolSymbol);
                         }
 
@@ -546,6 +506,57 @@ console.log(data);
             });
         });
     },
+
+
+    renderChart : {
+        ageGroups : function(uri, htmlNodeContainer) {
+            $.getJSON(uri, function(data) {
+                if(SE.C.DEBUG){
+                    console.log(uri + " :");
+                    console.log(data);
+                }
+
+                var xdata = [];
+                var ydata = [];
+                var agegroups = '';
+
+                if(data != null && data.data.length > 0){
+                    totalCalculated = 0;
+                    $.each(data.data, function(i, agegroup){
+                        xdata.push(agegroup.age_label.value);
+                        ydata.push(parseInt(agegroup.population.value));
+                        totalCalculated = totalCalculated + parseInt(agegroup.population.value);
+                    });
+    //                            if(SE.C.DEBUG){
+    //                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
+    //                            }
+                    SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
+                    agegroups += '<img src="' + SE.G.chartAPI.make({
+                        data : ydata,
+                        title       : 'Demographics',
+                        title_color : '111111',
+                        title_size  : 12,
+                        legend :  ['Population'],
+                        axis_labels : xdata,
+                        size : '360x150',
+                        type : 'bvg',
+                        colors : ['003399'],
+                        bar_width : 5,
+                        axis_range : '1,0,300',
+                        scaling : '0,300'
+                    }) + '"/>';
+                    agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
+                    agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
+                }
+                else {
+                   agegroups += '<p class="no_stats">No demographics available for this area, sorry ...</p>';
+                }
+
+                htmlNodeContainer.append(agegroups);
+            });
+        }
+    },
+
 
     showSchoolContext : function(schoolID){
         var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
