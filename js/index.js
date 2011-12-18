@@ -480,7 +480,7 @@ console.log(data);
                         schoolURIs = schoolURIs.join('+');
 
                         $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
-                        SE.renderChart.ageGroups(SE.C.AGEGROUPS_API_BASE + schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
+                        SE.renderChart.ageGroups(schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
                     }
 
                     $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
@@ -509,16 +509,18 @@ console.log(data);
 
 
     renderChart : {
-        ageGroups : function(uri, htmlNodeContainer) {
+        ageGroups : function(schoolURIs, htmlNodeContainer) {
+            var uri = SE.C.AGEGROUPS_API_BASE + schoolURIs;
+
             $.getJSON(uri, function(data) {
                 if(SE.C.DEBUG){
                     console.log(uri + " :");
                     console.log(data);
                 }
 
+                var agegroups = '';
                 var xdata = [];
                 var ydata = [];
-                var agegroups = '';
 
                 if(data != null && data.data.length > 0){
                     totalCalculated = 0;
@@ -553,6 +555,85 @@ console.log(data);
                 }
 
                 htmlNodeContainer.append(agegroups);
+            });
+        },
+
+        enrolment : function(school, htmlNodeContainer){
+            var uri = SE.C.ENROLMENT_API_BASE + encodeURIComponent(school["school"].value);
+
+            var total = 0;
+            var totalCalculated = 0;
+            var totalGirls = 0;
+            var totalBoys = 0;
+
+            htmlNodeContainer.append('<div class="enrolment processing"/>');
+
+            $.getJSON(uri, function(data) {
+                if(SE.C.DEBUG){
+                    console.log(uri + ":");
+                    console.log(data);
+                }
+
+                enrolment = '';
+                var xdata = [];
+                var ydata = [];
+
+                school_years = SE.C.SCHOOL_YEARS;
+
+                $.each(data.data, function(i, grade){
+                    if (school_years[grade.numberOfStudentsURI.value]) {
+                        school_years[grade.numberOfStudentsURI.value].value = parseInt(grade.numberOfStudents.value);
+                        totalCalculated = totalCalculated + school_years[grade.numberOfStudentsURI.value].value;
+                    }
+                    else {
+                        switch(grade.numberOfStudentsURI.value) {
+                            case "http://data-gov.ie/number-of-students":
+                                total = parseInt(grade.numberOfStudents.value);
+                                break;
+                            case "http://data-gov.ie/number-of-girl-students":
+                                totalGirls = parseInt(grade.numberOfStudents.value);
+                                break;
+                            case "http://data-gov.ie/number-of-boy-students":
+                                totalBoys = parseInt(grade.numberOfStudents.value);
+                                break;
+                            case "http://data-gov.ie/number-of-students-excluding-TY":
+                                totalExcludingTY = parseInt(grade.numberOfStudents.value);
+                            default:
+                                break;
+                        }
+                    }
+                });
+
+                $.each(school_years, function(index, o) {
+                    xdata.push(o.label);
+                    ydata.push(o.value);
+                });
+
+    //            if(SE.C.DEBUG){
+    //                console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
+    //            }
+
+                enrolment += '<img src="' + SE.G.chartAPI.make({
+                    data : ydata,
+                    title : 'Enrolment',
+                    title_color : '111111',
+                    title_size : 12,
+                    legend : ['Population'],
+                    axis_labels : xdata,
+                    size : '360x150',
+                    type : 'bvg', 
+                    colors : ['009933'],
+                    bar_width : 5,
+                    axis_range : '1,0,300',
+                    scaling : '0,300'
+                }) + '"/>';
+
+                enrolment += '<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>';
+                //  TODO: check if the year is correct
+                enrolment += '<div class="chart_more">Year: 2010 | Source: <a href="http://www.education.ie/" target="_blank">Dept. of Education</a></div>';
+
+                htmlNodeContainer.find('.enrolment').append(enrolment);
+                htmlNodeContainer.find('.enrolment').removeClass('processing');
             });
         }
     },
@@ -744,7 +825,7 @@ console.log(data);
 
         $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
 
-        SE.renderStats(school); // render the enrollment stats
+        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school)));
     },
 
     setSchoolURI : function(schoolID){
@@ -889,84 +970,6 @@ console.log(data);
     getReligionCoding : function(religion){
         if(religion.indexOf('catholic') > 0) return SE.G.religionCCodes['catholic']; // catholic is yellow
         return SE.G.religionCCodes['others']; // all others are white
-    },
-
-    renderStats : function(school){
-        var total = 0;
-        var totalCalculated = 0;
-        var totalGirls = 0;
-        var totalBoys = 0;
-        var schoolID = school["school"].value;
-
-        $('#school_' + SE.getSchoolNotation(school)).append('<div class="enrolment processing"/>');
-//        $('#school_' + SE.getSchoolNotation(school)).append('<div class="agegroups processing"/>');
-
-        $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { // get school's enrolments
-            if(SE.C.DEBUG){
-                console.log(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID) + ":");
-                console.log(data);
-            }
-
-            enrolment = '';
-            xdata = [], ydata = [];
-
-            school_years = SE.C.SCHOOL_YEARS;
-
-            $.each(data.data, function(i, grade){
-                if (school_years[grade.numberOfStudentsURI.value]) {
-                    school_years[grade.numberOfStudentsURI.value].value = parseInt(grade.numberOfStudents.value);
-                    totalCalculated = totalCalculated + school_years[grade.numberOfStudentsURI.value].value;
-                }
-                else {
-                    switch(grade.numberOfStudentsURI.value) {
-                        case "http://data-gov.ie/number-of-students":
-                            total = parseInt(grade.numberOfStudents.value);
-                            break;
-                        case "http://data-gov.ie/number-of-girl-students":
-                            totalGirls = parseInt(grade.numberOfStudents.value);
-                            break;
-                        case "http://data-gov.ie/number-of-boy-students":
-                            totalBoys = parseInt(grade.numberOfStudents.value);
-                            break;
-                        case "http://data-gov.ie/number-of-students-excluding-TY":
-                            totalExcludingTY = parseInt(grade.numberOfStudents.value);
-                        default:
-                            break;
-                    }
-                }
-            });
-
-            $.each(school_years, function(index, o) {
-                xdata.push(o.label);
-                ydata.push(o.value);
-            });
-
-//            if(SE.C.DEBUG){
-//                console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
-//            }
-
-            enrolment += '<img src="' + SE.G.chartAPI.make({
-                data : ydata,
-                title : 'Enrolment',
-                title_color : '111111',
-                title_size : 12,
-                legend : ['Population'],
-                axis_labels : xdata,
-                size : '360x150',
-                type : 'bvg', 
-                colors : ['009933'],
-                bar_width : 5,
-                axis_range : '1,0,300',
-                scaling : '0,300'
-            }) + '"/>';
-
-            enrolment += '<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>';
-            //  TODO: check if the year is correct
-            enrolment += '<div class="chart_more">Year: 2010 | Source: <a href="http://www.education.ie/" target="_blank">Dept. of Education</a></div>';
-
-            $('#school_' + SE.getSchoolNotation(school) + ' .enrolment').append(enrolment);
-            $('#school_' + SE.getSchoolNotation(school) + ' .enrolment').removeClass('processing');
-        });
     }
 };
 
