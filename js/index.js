@@ -51,6 +51,7 @@ var SE = { // School Explorer
         EXPAND_SCHOOL : "expand_school", // the @class of a 'expand school' element
         ADDRESS_FIELD_ID : "address", // the @id of the address input field
         DISTANCE_FIELD_ID : "distance", // the @id of the distance input field
+        AGE_FIELD_ID : "age", // the @id of the distance input field
         RELIGION_FIELD_ID : "religion", // the @id of the religion input field
         GENDER_FIELD_ID : "gender", // the @id of the gender input field
         FINDSCHOOL_BTN_ID : "find_school", // the @id of the 'find school' button
@@ -162,6 +163,7 @@ var SE = { // School Explorer
 
     init : function(){
         SE.initSearchPanel();
+        SE.handleInteraction();
     },
 
     initSearchPanel : function(){
@@ -190,17 +192,53 @@ var SE = { // School Explorer
             })
             return false
         });
+
+        // the search button has been hit, show nearby schools
+        $('#' + SE.C.FINDSCHOOL_BTN_ID).click(function(){
+            SE.searchAction();
+        });
+
+        // the ENTER key has been hit in the address field, show nearby schools
+        $('#' + SE.C.ADDRESS_FIELD_ID).keypress(function(e) {
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if (code == 13) {
+                SE.searchAction();
+            }
+        });
+
+        urlParams = SE.getURLParams();
+
+        if (urlParams.address != undefined) {
+            SE.setSchoolSearchValues(urlParams);
+            SE.showSchools();
+        }
+    },
+
+    searchAction : function() {
+        if (window.location.pathname != '/'+SE.C.BASE_URI) {
+            SE.getSchoolSearchValues();
+
+            urlParams = $.param({
+                'address' : SE.I.SCHOOL_ADDRESS,
+                'distance' : SE.I.SCHOOL_DISTANCE,
+                'age' : SE.I.SCHOOL_AGE,
+                'religion' : SE.I.SCHOOL_RELIGION,
+                'gender' : SE.I.SCHOOL_GENDER
+            });
+
+            window.location = SE.C.BASE_URI+'?'+urlParams;
+        }
+
+        SE.showSchools();
     },
 
     initMapPanel : function() {
 //        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
         SE.G.chartAPI = new jGCharts.Api();
-        SE.initResultsPanel();
 //        SE.initLegendPanel();
 //        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
 //            SE.handleSchoolDetailMode();
 //            }
-        SE.handleInteraction();
     },
 /*
     initNearbyPanel : function(){
@@ -222,10 +260,6 @@ var SE = { // School Explorer
     },
 */
 
-    initResultsPanel : function() {
-    
-    },
-
     initLegendPanel : function(){
         var buf = ["<div class='sublegend'><h2>Gender</h2>"];
         $.each(SE.G.genderCCodes, function(index, val){
@@ -239,31 +273,26 @@ var SE = { // School Explorer
         $('#' + SE.C.LEGEND_ELEMENT_ID).html(buf.join(""));
     },
 
+    //From http://stackoverflow.com/a/2880929
+    getURLParams : function() {
+        var urlParams = {};
+        var e,
+            a = /\+/g,  // Regex for replacing addition symbol with a space
+            r = /([^&=]+)=?([^&]*)/g,
+            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+            q = window.location.search.substring(1);
 
+        while (e = r.exec(q)) {
+           urlParams[d(e[1])] = d(e[2]);
+        }
+
+        return urlParams;
+    },
 
     handleInteraction : function(){
         // on window resize, fit map
         $(window).resize(function() { 
             $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
-        });
-
-        // the search button has been hit, show nearby schools
-        $('#' + SE.C.FINDSCHOOL_BTN_ID).click(function(){
-            SE.showSchools();
-        });
-        $('#' + SE.C.FINDSCHOOL_BTN_ID).mousedown(function(){
-            $(this).removeClass('submit');
-        });
-        $('#' + SE.C.FINDSCHOOL_BTN_ID).mouseup(function(){
-            $(this).addClass('submit');
-        });
-
-        // the ENTER key has been hit in the address field, show nearby schools
-        $('#' + SE.C.ADDRESS_FIELD_ID).keypress(function(e) {
-            var code = (e.keyCode ? e.keyCode : e.which);
-            if (code == 13) {
-                SE.showSchools();
-            }
         });
 
         // show the hidden school infos ...
@@ -346,20 +375,30 @@ var SE = { // School Explorer
         });
     },
 
-    initSchoolSearchValues : function() {
+    getSchoolSearchValues : function() {
         SE.I.SCHOOL_ADDRESS = $('#' + SE.C.ADDRESS_FIELD_ID).val();
         SE.I.SCHOOL_DISTANCE = $('#' + SE.C.DISTANCE_FIELD_ID).val();
+        SE.I.SCHOOL_AGE = $('#' + SE.C.AGE_FIELD_ID).val();
         SE.I.SCHOOL_RELIGION = $('#' + SE.C.RELIGION_FIELD_ID).val();
         SE.I.SCHOOL_GENDER = $('#' + SE.C.GENDER_FIELD_ID).val();
 
         console.log(SE.I.SCHOOL_ADDRESS);
         console.log(SE.I.SCHOOL_DISTANCE);
+        console.log(SE.I.SCHOOL_AGE);
         console.log(SE.I.SCHOOL_RELIGION);
         console.log(SE.I.SCHOOL_GENDER);
     },
 
+    setSchoolSearchValues : function(urlParams) {
+        $('#' + SE.C.ADDRESS_FIELD_ID).val(urlParams.address);
+        $('#' + SE.C.DISTANCE_FIELD_ID).val(urlParams.distance);
+        $('#' + SE.C.AGE_FIELD_ID).val(urlParams.age);
+        $('#' + SE.C.RELIGION_FIELD_ID).val(urlParams.religion);
+        $('#' + SE.C.GENDER_FIELD_ID).val(urlParams.gender);
+    },
+
     showSchools : function() {
-        SE.initSchoolSearchValues();
+        SE.getSchoolSearchValues();
 
 //        $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
 //        $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
