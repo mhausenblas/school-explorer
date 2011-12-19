@@ -15,6 +15,7 @@ var SE = { // School Explorer
         DEBUG : true,
 
         SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
+        SCHOOL_BASE_URI : "http://school-explorer.ie/school/",
 
         SCHOOL_LISTING_MODE : "SCHOOL LISTING", // render a list of schools; a particular school can be selected
         SCHOOL_DETAIL_MODE : "SCHOOL DETAIL", // render one school (note: requires the school URI, such as http://data-gov.ie/school/63000E)
@@ -233,15 +234,11 @@ var SE = { // School Explorer
     },
 
     initMapPanel : function() {
-//        SE.determineRenderMode(); // check what kind of mode we're supposed to operate in
-        SE.G.chartAPI = new jGCharts.Api();
-//        SE.initLegendPanel();
-//        if(SE.G.currentMode == SE.C.SCHOOL_DETAIL_MODE){
-//            SE.handleSchoolDetailMode();
-//            }
     },
-/*
+
     initNearbyPanel : function(){
+        SE.G.currentSchoolID = SE.getSchoolNotation(window.location.href);
+
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
                 value: SE.C.DEFAULT_SEARCH_RADIUS,
                 min: SE.C.MIN_SEARCH_RADIUS,
@@ -258,7 +255,7 @@ var SE = { // School Explorer
         });
         $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + SE.C.DEFAULT_SEARCH_RADIUS + "m</strong>:");
     },
-*/
+
 
     initLegendPanel : function(){
         var buf = ["<div class='sublegend'><h2>Gender</h2>"];
@@ -298,6 +295,7 @@ var SE = { // School Explorer
 
         l = getLocation(uri);
 
+        //I rebuild for 1337 points (or maybe because I don't know better)
         return l.protocol+'//'+host+l.port+l.pathname+l.search+l.hash;
     },
 
@@ -634,13 +632,9 @@ console.log(data);
 //        SE.renderStats();
     },
 
-    getSchoolNotation : function(school) {
-        //FIXME: This is a temporary heck until the data in the RDF store contains a literal for skos:notation. Otherwise, we just do school['notation']. For school URI "http://data-gov.ie/school/123456" , we get string after last /
-        return school['school'].value.substring(26);
-    },
 
     renderSchool : function(school, schoolSymbol){
-        school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
+        school_info = '<li id="school_' + SE.getSchoolNotation(school['school'].value) + '" class="school_info">';
 
         school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
@@ -657,7 +651,7 @@ console.log(data);
 
         $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
 
-        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school)));
+        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
     },
 
     determineSchoolRangeState : function(label, distance, religion, gender) {
@@ -898,10 +892,8 @@ console.log(data);
     },
 
 
-    setSchoolURI : function(schoolID){
-        var currentURL = document.URL;
-        currentURL = currentURL.substring(0, currentURL.indexOf("#"));
-        window.location = currentURL + "#" + schoolID.substring(schoolID.lastIndexOf("/") + 1 );
+    getSchoolNotation : function(uri){
+        return uri.substring(uri.lastIndexOf("/school/") + 8);
     },
 
 
@@ -961,8 +953,6 @@ $(document).ready(function(){
             break;
 
         case 'map':
-            SE.initMapPanel();
-
                 // TESTS:
                 // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
                 // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
@@ -970,6 +960,7 @@ $(document).ready(function(){
             break;
 
         case 'school':
+            SE.initNearbyPanel();
             break;
     }
 });
