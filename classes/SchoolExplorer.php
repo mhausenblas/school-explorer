@@ -54,8 +54,6 @@ class SchoolExplorer
 
     function home()
     {
-        echo "\n".'<p>home sweet home</p>';
-
 
     }
 
