@@ -129,10 +129,15 @@ tr:last-child {
 border-bottom:0;
 }
 
-
+dl {
+margin-bottom:1.5em;
+}
 dt {
 font-weight:bold;
-margin-bottom:0.5em;
+margin-bottom:0.25em;
+}
+dd {
+margin-bottom:1em;
 }
 
 
