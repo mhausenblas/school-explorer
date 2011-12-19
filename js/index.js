@@ -902,14 +902,23 @@ console.log(data);
 $(document).ready(function(){
     SE.init(); // start interaction
 
-    if ($('body').attr('id') == 'map') {
-        if ($("#form_search")) {
+    bodyId = $('body').attr('id');
+
+    switch (bodyId) {
+        case 'home':
+            SE.renderSchoolOverview();
+            break;
+
+        case 'map':
             SE.initMapPanel();
 
-            // TESTS:
-            // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
-            // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
-            // $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
-        }
+                // TESTS:
+                // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
+                // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");
+                // $('#' + SE.C.DETAILS_ELEMENT_ID).html(SE.renderSchoolEnrolment("http://data-gov.ie/school/62210K"));
+            break;
+
+        case 'school':
+            break;
     }
 });
