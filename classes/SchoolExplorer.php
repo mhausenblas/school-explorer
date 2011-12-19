@@ -421,7 +421,6 @@ EOD;
         $this->config['requestQuery'] = array();
 
         $url = parse_url(substr($_SERVER['REQUEST_URI'], 1));
-
         $this->config['requestPath'] = explode('/', $url['path']);
 
         if (isset($url['query'])) {
@@ -433,9 +432,12 @@ EOD;
                 $key = $value = '';
                 list($key, $value) = explode("=", $query) + Array(1 => null, null);
 
-                if (!isset($value) || empty($value)) {
-                    $this->returnError('malformed');
-                }
+                //XXX: I'm not sure why an empty value should return an error.
+                //Perhaps I meant the key? Commented out for now.
+#                if (!isset($value) || empty($value)) {
+#                    $this->returnError('malformed');
+#                }
+
                 $requestQuery[$key] = $value;
             }
 
