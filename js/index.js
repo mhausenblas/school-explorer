@@ -289,6 +289,18 @@ var SE = { // School Explorer
         return urlParams;
     },
 
+    replaceURIsHost : function(uri, host) {
+        getLocation = function(uri) {
+            l = document.createElement("a");
+            l.href = uri;
+            return l;
+        }
+
+        l = getLocation(uri);
+
+        return l.protocol+'//'+host+l.port+l.pathname+l.search+l.hash;
+    },
+
     handleInteraction : function(){
         // on window resize, fit map
         $(window).resize(function() { 
@@ -630,7 +642,7 @@ console.log(data);
     renderSchool : function(school, schoolSymbol){
         school_info = '<li id="school_' + SE.getSchoolNotation(school) + '" class="school_info">';
 
-        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + school["school"].value + '">' + school["label"].value + '</a></h2>';
+        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
         school_info += '<span class="head">Address:</span> ' + school["address1"].value;
         if(school["address2"]) { school_info += ' ' + school["address2"].value; }
