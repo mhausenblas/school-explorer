@@ -150,9 +150,9 @@ var SE = { // School Explorer
         
         tmp.append('<div style="clear:left; padding:2em; text-align:center; color: #a0a0a0;">&diams;</div><h3>Examples</h3>');
         // Galway, catholic, mixed:
-        tmp.append('<div class="example_school"><a href="school#63000E" target="_blank"><img src="../img/ex1.png" alt="picture of Presentation Secondary School"/></a><p>Presentation Secondary School, Galway</p></div>');
+        tmp.append('<div class="example_school"><a href="/school/63000E" target="_blank"><img src="/theme/base/images/illustrations/illu_ex1.png" alt="picture of Presentation Secondary School"/></a><p>Presentation Secondary School, Galway</p></div>');
         // Dublin, catholic, girls: - TODO: check why this is not working ....
-        tmp.append('<div class="example_school"><a href="school#60890C" target="_blank"><img src="../img/ex2.png" alt="picture of St Louis High School"/></a><p>St Louis High School, Dublin 6</p></div>');
+        tmp.append('<div class="example_school"><a href="/school/60890C" target="_blank"><img src="/theme/base/images/illustrations/illu_ex2.png" alt="picture of St Louis High School"/></a><p>St Louis High School, Dublin 6</p></div>');
 
         $('#' + SE.C.CONTAINER_INNER_ELEMENT_ID).prepend(tmp);
 
@@ -315,7 +315,7 @@ var SE = { // School Explorer
                     $('.' + SE.C.EXPAND_SCHOOL, el).html("<div>Pupils: " + total + "</div>");
                     $('.' + SE.C.EXPAND_SCHOOL, el).css('font-size', '8pt');
                     // mark school visited:
-                    el.css('background-image', 'url(../img/seen.png)');
+                    el.css('background-image', 'url(/theme/base/images/icons/icon_checkmark.png)');
                     el.css('background-position', 'top right');
                     el.css('background-repeat', 'no-repeat');
                     el.css('color', '#aeaeae');
@@ -776,7 +776,7 @@ console.log(data);
         new google.maps.Marker({
             position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
             map: SE.G.smap,
-            icon: new google.maps.MarkerImage('../img/home.png'),
+            icon: new google.maps.MarkerImage('/theme/base/images/illustrations/illu_home.png'),
             title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
         });
 
