@@ -152,9 +152,11 @@ margin-right:0;
 address .fn {
 font-weight:bold;
 }
+/*
 address img + .fn {
 display:none;
 }
+*/
 address a {
 text-decoration:none;
 }
