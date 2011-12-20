@@ -15,17 +15,16 @@ var SE = { // School Explorer
         DEBUG : true,
 
         SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
-        SCHOOL_BASE_URI : "http://school-explorer.ie/school/",
 
         SCHOOL_LISTING_MODE : "SCHOOL LISTING", // render a list of schools; a particular school can be selected
         SCHOOL_DETAIL_MODE : "SCHOOL DETAIL", // render one school (note: requires the school URI, such as http://data-gov.ie/school/63000E)
 
-        BASE_URI : "map", // such as http://school-explorer.data-gov.ie/map on the server
-        NEAR_API_BASE : "near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
-        ENROLMENT_API_BASE : "enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
-        AGEGROUPS_API_BASE : "agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
-        INFO_API_BASE : "info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
-        NEARBY_API_BASE : "lgd_lookup?center=", // such as lgd_lookup?center=53.7724,-7.1632&radius=1000
+        BASE_URI : "/map", // such as http://school-explorer.data-gov.ie/map on the server
+        NEAR_API_BASE : "/near?center=", // such as near?center=53.2895,-9.0820&religion=Catholic&gender=Gender_Boys
+        ENROLMENT_API_BASE : "/enrolment?school_id=", // such as enrolment?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+        AGEGROUPS_API_BASE : "/agegroups?school_id=", // such as agegroups?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F63000E
+        INFO_API_BASE : "/info?school_id=", // such as info?school_id=http%3A%2F%2Fdata-gov.ie%2Fschool%2F62210K
+        NEARBY_API_BASE : "/lgd_lookup?center=", // such as lgd_lookup?center=53.7724,-7.1632&radius=1000
 
         LINKEDGEODATA_API_BASE : "http://browser.linkedgeodata.org/?", // such as http://browser.linkedgeodata.org/?lat=53.289191332462&lon=-9.0729670467386&zoom=15
 
@@ -237,7 +236,7 @@ var SE = { // School Explorer
     },
 
     initNearbyPanel : function(){
-        SE.G.currentSchoolID = SE.getSchoolNotation(window.location.href);
+        SE.showSchoolContext();
 
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
                 value: SE.C.DEFAULT_SEARCH_RADIUS,
@@ -345,7 +344,7 @@ var SE = { // School Explorer
             // handle first time visit via listing
             if($.inArray(schoolID, SE.G.vlist) < 0 ) { // school has not yet been visited via listing
                 // get school's enrolments and display totals as well as mark school listing item as visited
-                $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data) { 
+                $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data, textStatus) {
                     var total = 0;
                     $.each(data.data, function(i, grade){
                         total = total + parseInt(grade.numberOfStudents.value);
@@ -406,6 +405,7 @@ var SE = { // School Explorer
         $('#' + SE.C.RELIGION_FIELD_ID).val(urlParams.religion);
         $('#' + SE.C.GENDER_FIELD_ID).val(urlParams.gender);
     },
+
 
     showSchools : function() {
         SE.getSchoolSearchValues();
@@ -484,7 +484,7 @@ console.log(data);
         ageGroups : function(schoolURIs, htmlNodeContainer) {
             var uri = SE.C.AGEGROUPS_API_BASE + schoolURIs;
 
-            $.getJSON(uri, function(data) {
+            $.getJSON(uri, function(data, textStatus) {
                 if(SE.C.DEBUG){
                     console.log(uri + " :");
                     console.log(data);
@@ -504,7 +504,7 @@ console.log(data);
     //                            if(SE.C.DEBUG){
     //                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
     //                            }
-                    SE.G.chartAPI = new jGCharts.Api(); // need to reset it, otherwise remembers the previous settings
+                    SE.G.chartAPI = new jGCharts.Api();
                     agegroups += '<img src="' + SE.G.chartAPI.make({
                         data : ydata,
                         title       : 'Demographics',
@@ -540,7 +540,7 @@ console.log(data);
 
             htmlNodeContainer.append('<div class="enrolment processing"/>');
 
-            $.getJSON(uri, function(data) {
+            $.getJSON(uri, function(data, textStatus) {
                 if(SE.C.DEBUG){
                     console.log(uri + ":");
                     console.log(data);
@@ -585,6 +585,7 @@ console.log(data);
     //                console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
     //            }
 
+                SE.G.chartAPI = new jGCharts.Api();
                 enrolment += '<img src="' + SE.G.chartAPI.make({
                     data : ydata,
                     title : 'Enrolment',
@@ -743,22 +744,37 @@ console.log(data);
             context.fillText(school_marker, x_text, y_text);
         }
 
-        //FIXME: Why bother? This doesn't get cached!
+        //FIXME: Why bother using a data URI? This doesn't get cached!
         //TODO: Best is to skip image based markers and use simple text based (if possible) since we are only displaying numbers with a background colour.
         return canvas.toDataURL("image/png");
     },
 
 
-    showSchoolContext : function(schoolID){
-        var schoolLoc = new google.maps.LatLng(SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value);
-        SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLoc);
-        SE.nearbyBusy();
-        $('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
-        $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
-        $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
-        // now trigger LGD look-up and make the school listing fit:
-        SE.renderSchoolNearby(SE.C.NEARBY_ELEMENT_ID, SE.G.slist[schoolID]["lat"].value, SE.G.slist[schoolID]["long"].value, SE.G.contextRadius);
-        $('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "68%");
+    getSchoolInfo : function(schoolId) {
+
+    },
+
+    showSchoolContext : function(){
+        var schoolURI = SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + SE.getSchoolNotation(window.location.href);
+        var uri = SE.C.INFO_API_BASE + encodeURIComponent(schoolURI);
+
+        $.getJSON(uri, function(data, textStatus) {
+            if(data.data) {
+                console.log(data.data[0]);
+                school = data.data[0];
+
+                schoolLocation = new google.maps.LatLng(school["lat"].value, school["long"].value);
+
+                SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLocation);
+                SE.nearbyBusy();
+                $('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
+                $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).show();
+                $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).show();
+                // now trigger LGD look-up and make the school listing fit:
+                SE.renderSchoolNearby(SE.C.NEARBY_ELEMENT_ID, school["lat"].value, school["long"].value, SE.G.contextRadius);
+            }
+        });
+        return school;
     },
 
     hideSchoolContext : function(){
