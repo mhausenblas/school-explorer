@@ -168,6 +168,7 @@ var SE = { // School Explorer
 
     initSearchPanel : function(){
         $("#form_search #address").focus();
+/*
         $("#form_search .form_guide").parent().hover(function () {
             $(this).css({position:"relative"});
 
@@ -192,7 +193,7 @@ var SE = { // School Explorer
             })
             return false
         });
-
+*/
         // the search button has been hit, show nearby schools
         $('#' + SE.C.FINDSCHOOL_BTN_ID).click(function(){
             SE.searchAction();
