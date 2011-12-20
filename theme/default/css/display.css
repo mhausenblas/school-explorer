@@ -112,7 +112,9 @@ border-color:#AAAAAA;
 /* Michael's additions :*/
 
 #school_results{
-padding: 0;
+margin-bottom:2em;
+float:left;
+width:100%;
 }
 
 .example_school{
@@ -177,6 +179,7 @@ padding: .1em;
 #school_details{
 float: right;
 width:360px;
+margin-left:1em;
 }
 
 .school_lst{
@@ -299,15 +302,34 @@ cursor: pointer;
 text-align: left;
 }
 
+#school_info {
+float:left;
+margin-left:5em;
+width:550px;
+}
+#school_info dl,
+#school_info dt,
+#school_info dd {
+float:left;
+}
+#school_info dt {
+clear:left;
+width:40%;
+}
+#school_info dd {
+margin-left:2em;
+width:50%;
+}
+
 
 #school_context{
 float: left;
+clear:both;
 }
 
 #school_sv_map{
 display: none;
 float: left;
-margin: 50px 0 20px 0;
 width: 300px;
 height: 250px;
 box-shadow:3px 7px 5px rgba(194, 194, 194, 0.5);

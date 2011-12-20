@@ -432,12 +432,6 @@ console.log('data:');
 console.log(data);
 
                     SE.compileSchoolInfo(lat, lng, rows);
-
-                    // if we already have a map, remeber the zoom factor
-//                    if(SE.G.smap) SE.G.selectedZoomFactor = SE.G.smap.getZoom();
-
-                    // create the map centered on the location of the address
-
                 }
             });
         });
@@ -769,6 +763,17 @@ console.log(data);
                 console.log(data.data[0]);
                 school = data.data[0];
 
+                if (!school["distance"]) {
+                    $.extend(school, {"distance" : {"value" : 0}});
+                }
+
+                //XXX: I do this here like this temporarily because I have to refactor stuff later.
+                SE.I.SCHOOL_DISTANCE = 0
+                SE.I.SCHOOL_RELIGION = school['religion'].value;
+                SE.I.SCHOOL_GENDER = school['gender'].value;
+
+                SE.compileSchoolInfo(school["lat"].value, school["long"].value, [school]);
+
                 schoolLocation = new google.maps.LatLng(school["lat"].value, school["long"].value);
 
                 SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLocation);
@@ -780,7 +785,6 @@ console.log(data);
                 SE.renderSchoolNearby(SE.C.NEARBY_ELEMENT_ID, school["lat"].value, school["long"].value, SE.G.contextRadius);
             }
         });
-        return school;
     },
 
     hideSchoolContext : function(){

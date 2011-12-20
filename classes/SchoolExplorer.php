@@ -188,7 +188,7 @@ EOD;
 
         if (!is_null($bindings) || !empty($bindings)) {
             $s .= <<<EOD
-            <dl>
+            <dl id="school_info">
 EOD;
             foreach($bindings as $key => $value) {
                 foreach($value as $k => $v) {
