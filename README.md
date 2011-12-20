@@ -132,3 +132,6 @@ Add map, nearby info, and streeview to school detail pages
 
 #### Vocabulary/Ontology
 Review
+
+#### Performance
+Doublecheck how and when queries are initiated. Minimize requests from the SPARQL server
