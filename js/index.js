@@ -430,55 +430,59 @@ var SE = { // School Explorer
 console.log('showSchools()');
 console.log('data:');
 console.log(data);
+
+                    SE.compileSchoolInfo(lat, lng, rows);
+
                     // if we already have a map, remeber the zoom factor
-                    if(SE.G.smap) SE.G.selectedZoomFactor = SE.G.smap.getZoom();
+//                    if(SE.G.smap) SE.G.selectedZoomFactor = SE.G.smap.getZoom();
 
                     // create the map centered on the location of the address
-                    SE.initMap(lat, lng);
 
-                    var schoolURIs = [];
-                    var inRangeSchools = [];
-
-                    $.each(rows, function(i, s) {
-                        var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, s["religion"].value, s["gender"].value);
-
-                        if (school_state == 'inrange') {
-                            inRangeSchools.push(s['school'].value);
-                            schoolURIs.push(encodeURIComponent(s['school'].value));
-                        }
-                    });
-
-                    if (inRangeSchools.length > 0) {
-                        schoolURIs = schoolURIs.join('+');
-
-                        $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
-                        SE.renderChart.ageGroups(schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
-                    }
-
-                    $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
-
-                    var counter = 0;
-
-                    for(i in rows) {
-                        var row = rows[i];
-
-                        var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
-
-                        var school_marker = (school_state == 'inrange') ? ++counter : 0;
-                        var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
-                        SE.addSchoolMarker(row, schoolSymbol);
-
-                        if ($.inArray(row['school'].value, inRangeSchools) > -1) {
-                            SE.renderSchool(row, schoolSymbol);
-                        }
-
-//                        SE.G.slist[row["school"].value] = row; // set up school look-up table
-                    }
                 }
             });
         });
     },
 
+    compileSchoolInfo : function(lat, lng, rows) {
+        SE.initMap(lat, lng);
+
+        var schoolURIs = [];
+        var inRangeSchools = [];
+
+        $.each(rows, function(i, s) {
+            var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, s["religion"].value, s["gender"].value);
+
+            if (school_state == 'inrange') {
+                inRangeSchools.push(s['school'].value);
+                schoolURIs.push(encodeURIComponent(s['school'].value));
+            }
+        });
+
+        if (inRangeSchools.length > 0) {
+            schoolURIs = schoolURIs.join('+');
+
+            $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
+            SE.renderChart.ageGroups(schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
+        }
+
+        $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
+
+        var counter = 0;
+
+        for(i in rows) {
+            var row = rows[i];
+
+            var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+
+            var school_marker = (school_state == 'inrange') ? ++counter : 0;
+            var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+            SE.addSchoolMarker(row, schoolSymbol);
+
+            if ($.inArray(row['school'].value, inRangeSchools) > -1) {
+                SE.renderSchool(row, schoolSymbol);
+            }
+        }
+    },
 
     renderChart : {
         ageGroups : function(schoolURIs, htmlNodeContainer) {
@@ -662,6 +666,8 @@ console.log(data);
         if (SE.I.SCHOOL_DISTANCE.length > 0 && parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
             school_state = 'outofrange';
         }
+
+        //TODO: Age
 
         if (SE.I.SCHOOL_RELIGION.length > 0 && religion != SE.I.SCHOOL_RELIGION) {
             school_state = 'inapplicable';
