@@ -578,7 +578,7 @@ EOD;
             case 'info':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?phaseOfEducation_label
                         WHERE {
                             $schoolGraph
                         }
