@@ -12,7 +12,7 @@
 var SE = { // School Explorer
 
     C : { // constant SE-wide values
-        DEBUG : true,
+        DEBUG : false,
 
         SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
 
@@ -391,12 +391,13 @@ var SE = { // School Explorer
         SE.I.SCHOOL_AGE = $('#' + SE.C.AGE_FIELD_ID).val();
         SE.I.SCHOOL_RELIGION = $('#' + SE.C.RELIGION_FIELD_ID).val();
         SE.I.SCHOOL_GENDER = $('#' + SE.C.GENDER_FIELD_ID).val();
-
-        console.log(SE.I.SCHOOL_ADDRESS);
-        console.log(SE.I.SCHOOL_DISTANCE);
-        console.log(SE.I.SCHOOL_AGE);
-        console.log(SE.I.SCHOOL_RELIGION);
-        console.log(SE.I.SCHOOL_GENDER);
+        if(SE.C.DEBUG){
+            console.log(SE.I.SCHOOL_ADDRESS);
+            console.log(SE.I.SCHOOL_DISTANCE);
+            console.log(SE.I.SCHOOL_AGE);
+            console.log(SE.I.SCHOOL_RELIGION);
+            console.log(SE.I.SCHOOL_GENDER);
+        }
     },
 
     setSchoolSearchValues : function(urlParams) {
@@ -428,10 +429,11 @@ var SE = { // School Explorer
             $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function(data, textStatus){
                 if(data.data) {
                     var rows = data.data;
-console.log('showSchools()');
-console.log('data:');
-console.log(data);
-
+                    if(SE.C.DEBUG){
+                        console.log('showSchools()');
+                        console.log('data:');
+                        console.log(data);
+                    }
                     SE.compileSchoolInfo(lat, lng, rows);
                 }
             });
@@ -761,7 +763,9 @@ console.log(data);
 
         $.getJSON(uri, function(data, textStatus) {
             if(data.data) {
-                console.log(data.data[0]);
+                if(SE.C.DEBUG){
+                    console.log(data.data[0]);
+                }
                 school = data.data[0];
 
                 if (!school["distance"]) {
@@ -804,7 +808,9 @@ console.log(data);
             r = "&religion=" + encodeURIComponent(religion);
         }
         var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + encodeURIComponent(gender) + r;
-        console.log(url);
+        if(SE.C.DEBUG){
+            console.log(url);
+        }
         return url;
     },
 
@@ -991,3 +997,4 @@ $(document).ready(function(){
             break;
     }
 });
+
