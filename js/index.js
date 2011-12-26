@@ -721,6 +721,8 @@ var SE = { // School Explorer
         var schoolURI = SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + SE.getSchoolNotation(window.location.href);
         var uri = SE.C.INFO_API_BASE + encodeURIComponent(schoolURI);
 
+	$('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+
         $.getJSON(uri, function (data, textStatus) {
             if (data.data) {
                 school = data.data[0];
