@@ -113,7 +113,7 @@ var SE = { // School Explorer
     // http://en.wikipedia.org/wiki/National_school_%28Ireland%29
 
     // static rendering of schools and some examples ...
-    renderSchoolOverview : function(){
+    renderSchoolOverview : function () {
         var tmp = $('<div id="' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID +  '"/>');
         var tmpf = $('<div style="float:left;"/>');
 
@@ -134,7 +134,8 @@ var SE = { // School Explorer
             colors : ['339900']
         })));
 
-        tmp.append(tmpf);tmpf = $('<div style="float:left; margin: 0 1em 0 0;"/>');
+        tmp.append(tmpf);
+        tmpf = $('<div style="float:left; margin: 0 1em 0 0;"/>');
         // http://www.education.ie/servlet/blobservlet/stat_web_stats_09_10.pdf
         tmpf.append($('<img>').attr('src', SE.G.chartAPI.make({
             data : [31709, 13228, 8335, 3630, 610],
@@ -161,12 +162,12 @@ var SE = { // School Explorer
 
     // TODO: make legend filter-able
 
-    init : function(){
+    init : function () {
         SE.initSearchPanel();
         SE.handleInteraction();
     },
 
-    initSearchPanel : function(){
+    initSearchPanel : function () {
         $("#form_search #address").focus();
 /*
         $("#form_search .form_guide").parent().hover(function () {
@@ -195,12 +196,12 @@ var SE = { // School Explorer
         });
 */
         // the search button has been hit, show nearby schools
-        $('#' + SE.C.FINDSCHOOL_BTN_ID).click(function(){
+        $('#' + SE.C.FINDSCHOOL_BTN_ID).click(function () {
             SE.searchAction();
         });
 
         // the ENTER key has been hit in the address field, show nearby schools
-        $('#' + SE.C.ADDRESS_FIELD_ID).keypress(function(e) {
+        $('#' + SE.C.ADDRESS_FIELD_ID).keypress(function (e) {
             var code = (e.keyCode ? e.keyCode : e.which);
             if (code == 13) {
                 SE.searchAction();
@@ -215,11 +216,11 @@ var SE = { // School Explorer
         }
     },
 
-    searchAction : function() {
+    searchAction : function () {
         if (window.location.pathname != '/'+SE.C.BASE_URI) {
             SE.getSchoolSearchValues();
 
-            urlParams = $.param({
+            var urlParams = $.param({
                 'address' : SE.I.SCHOOL_ADDRESS,
                 'distance' : SE.I.SCHOOL_DISTANCE,
                 'age' : SE.I.SCHOOL_AGE,
@@ -227,28 +228,28 @@ var SE = { // School Explorer
                 'gender' : SE.I.SCHOOL_GENDER
             });
 
-            window.location = SE.C.BASE_URI+'?'+urlParams;
+            window.location = SE.C.BASE_URI + '?' + urlParams;
         }
 
         SE.showSchools();
     },
 
-    initMapPanel : function() {
+    initMapPanel : function () {
     },
 
-    initNearbyPanel : function(){
+    initNearbyPanel : function () {
         SE.showSchoolContext();
 
         $('#' + SE.C.NEARBY_SLIDER_ELEMENT_ID).slider({
                 value: SE.C.DEFAULT_SEARCH_RADIUS,
                 min: SE.C.MIN_SEARCH_RADIUS,
                 max: SE.C.MAX_SEARCH_RADIUS,
-                slide: function(event, ui) {
+                slide: function (event, ui) {
                     SE.G.contextRadius =  ui.value; // get the current selected slider value (== search radius for nearby POIs in meter)
                     $('#' + SE.C.NEARBY_RADIUS_ELEMENT_ID).html("<h3>Nearby</h3>Showing nearby things closer than <strong>" + ui.value + "m</strong>:");
                 },
-                change: function(event, ui) {
-                    if(SE.G.currentSchoolID){ // update context of current selected school
+                change: function (event, ui) {
+                    if (SE.G.currentSchoolID) { // update context of current selected school
                         SE.showSchoolContext(SE.G.currentSchoolID);
                     }
                 }
@@ -257,13 +258,13 @@ var SE = { // School Explorer
     },
 
 
-    initLegendPanel : function(){
+    initLegendPanel : function () {
         var buf = ["<div class='sublegend'><h2>Gender</h2>"];
-        $.each(SE.G.genderCCodes, function(index, val){
+        $.each(SE.G.genderCCodes, function (index, val) {
             buf.push("<div style='background:" + SE.G.genderCCodes[index] +";'>" + index + "</div>");
         });
         buf.push("</div><div class='sublegend'><h2>Religion</h2>");
-        $.each(SE.G.religionCCodes, function(index, val){
+        $.each(SE.G.religionCCodes, function (index, val) {
             buf.push("<div style='background:" + SE.G.religionCCodes[index] +";'>" + index + "</div>");
         });
         buf.push("</div>");
@@ -271,7 +272,7 @@ var SE = { // School Explorer
     },
 
     //From http://stackoverflow.com/a/2880929
-    getURLParams : function() {
+    getURLParams : function () {
         var urlParams = {};
         var e,
             a = /\+/g,  // Regex for replacing addition symbol with a space
@@ -286,8 +287,8 @@ var SE = { // School Explorer
         return urlParams;
     },
 
-    replaceURIsHost : function(uri, host) {
-        getLocation = function(uri) {
+    replaceURIsHost : function (uri, host) {
+        getLocation = function (uri) {
             l = document.createElement("a");
             l.href = uri;
             return l;
@@ -296,18 +297,18 @@ var SE = { // School Explorer
         l = getLocation(uri);
 
         //I rebuild for 1337 points (or maybe because I don't know better)
-        return l.protocol+'//'+host+l.port+l.pathname+l.search+l.hash;
+        return l.protocol + '//' + host + l.port + l.pathname + l.search + l.hash;
     },
 
-    handleInteraction : function(){
+    handleInteraction : function () {
         // on window resize, fit map
-        $(window).resize(function() { 
+        $(window).resize(function () { 
             $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
         });
 
         // show the hidden school infos ...
-        $('#' + SE.C.SHOW_MORE_SCHOOLS).live('click', function(){
-            $('.' + SE.C.SCHOOL_LIST_ITEM_CLASS + '.hidden').each(function(index) {
+        $('#' + SE.C.SHOW_MORE_SCHOOLS).live('click', function () {
+            $('.' + SE.C.SCHOOL_LIST_ITEM_CLASS + '.hidden').each(function (index) {
                 $(this).removeClass('hidden');
             });
             $(this).html("");
@@ -316,7 +317,7 @@ var SE = { // School Explorer
         });
 
         // expand school listing item, let the associated marker bounce and show context
-        $('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function(){
+        $('.' + SE.C.SCHOOL_LIST_ITEM_CLASS).live('click', function () {
             var schoolID = $(this).attr('about');
             var el = $(this);
             SE.G.currentSchoolID = schoolID;
@@ -331,23 +332,23 @@ var SE = { // School Explorer
 //            SE.showSchoolContext(schoolID);
 
             // stop bouncing of all markers and start bouncing of associated marker:
-            $.each(SE.G.mlist, function(sID, marker){
+            $.each(SE.G.mlist, function (sID, marker) {
                  marker.setAnimation(null);
             });
             SE.G.mlist[schoolID].setAnimation(google.maps.Animation.BOUNCE);
 
             // activate associated info window via school look-up table
-            SE.renderSchool(SE.G.slist[schoolID], function(iwcontent){
+            SE.renderSchool(SE.G.slist[schoolID], function (iwcontent) {
                 var s = SE.G.slist[schoolID];
                 SE.G.iwlist[s["school"].value] = SE.addSchoolInfo(s["school"].value, SE.G.mlist[schoolID], iwcontent); // remember info windows indexed by school ID
             });
 
             // handle first time visit via listing
-            if($.inArray(schoolID, SE.G.vlist) < 0 ) { // school has not yet been visited via listing
+            if ($.inArray(schoolID, SE.G.vlist) < 0 ) { // school has not yet been visited via listing
                 // get school's enrolments and display totals as well as mark school listing item as visited
-                $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function(data, textStatus) {
+                $.getJSON(SE.C.ENROLMENT_API_BASE + encodeURIComponent(schoolID), function (data, textStatus) {
                     var total = 0;
-                    $.each(data.data, function(i, grade){
+                    $.each(data.data, function (i, grade) {
                         total = total + parseInt(grade.numberOfStudents.value);
                     });
                     // replace  'More ...' with details about school
@@ -365,19 +366,19 @@ var SE = { // School Explorer
         });
 
         // stop bouncing button
-        $('#' + SE.C.STOP_BOUNCE).live('click', function(){
-            $.each(SE.G.mlist, function(sID, marker){
+        $('#' + SE.C.STOP_BOUNCE).live('click', function () {
+            $.each(SE.G.mlist, function (sID, marker) {
                  marker.setAnimation(null);
             });
             $(this).hide();
         });
         
-        $('#' + SE.C.CLOSE_ALL_INFO_WINDOW).live('click', function(){
-            $.each(SE.G.iwlist, function(sID, infowindow){
+        $('#' + SE.C.CLOSE_ALL_INFO_WINDOW).live('click', function () {
+            $.each(SE.G.iwlist, function (sID, infowindow) {
                  infowindow.close();
             });
             // and also stop the bouncing ...
-            $.each(SE.G.mlist, function(sID, marker){
+            $.each(SE.G.mlist, function (sID, marker) {
                  marker.setAnimation(null);
             });
             $(this).hide();
@@ -385,22 +386,15 @@ var SE = { // School Explorer
         });
     },
 
-    getSchoolSearchValues : function() {
+    getSchoolSearchValues : function () {
         SE.I.SCHOOL_ADDRESS = $('#' + SE.C.ADDRESS_FIELD_ID).val();
         SE.I.SCHOOL_DISTANCE = $('#' + SE.C.DISTANCE_FIELD_ID).val();
         SE.I.SCHOOL_AGE = $('#' + SE.C.AGE_FIELD_ID).val();
         SE.I.SCHOOL_RELIGION = $('#' + SE.C.RELIGION_FIELD_ID).val();
         SE.I.SCHOOL_GENDER = $('#' + SE.C.GENDER_FIELD_ID).val();
-        if(SE.C.DEBUG){
-            console.log(SE.I.SCHOOL_ADDRESS);
-            console.log(SE.I.SCHOOL_DISTANCE);
-            console.log(SE.I.SCHOOL_AGE);
-            console.log(SE.I.SCHOOL_RELIGION);
-            console.log(SE.I.SCHOOL_GENDER);
-        }
     },
 
-    setSchoolSearchValues : function(urlParams) {
+    setSchoolSearchValues : function (urlParams) {
         $('#' + SE.C.ADDRESS_FIELD_ID).val(urlParams.address);
         $('#' + SE.C.DISTANCE_FIELD_ID).val(urlParams.distance);
         $('#' + SE.C.AGE_FIELD_ID).val(urlParams.age);
@@ -409,7 +403,7 @@ var SE = { // School Explorer
     },
 
 
-    showSchools : function() {
+    showSchools : function () {
         SE.getSchoolSearchValues();
 
 //        $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
@@ -419,34 +413,26 @@ var SE = { // School Explorer
 
         $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 
-        SE.position2Address(SE.I.SCHOOL_ADDRESS, function(lat, lng){ // get the location from address and show the 'nearby' schools
-            if(SE.C.DEBUG){
-                console.log("For address [" + SE.I.SCHOOL_ADDRESS + "] I found the following location: [" + lat + "," + lng + "]");
-                console.log("You asked for distance [" + SE.I.SCHOOL_DISTANCE + "], religion: [" + SE.I.SCHOOL_RELIGION + "], gender: [" + SE.I.SCHOOL_GENDER + "]");
-            }
+        SE.position2Address(SE.I.SCHOOL_ADDRESS, function (lat, lng) { // get the location from address and show the 'nearby' schools
             // now, get the schools around this address
 
-            $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function(data, textStatus){
-                if(data.data) {
+            $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function (data, textStatus) {
+                if (data.data) {
                     var rows = data.data;
-                    if(SE.C.DEBUG){
-                        console.log('showSchools()');
-                        console.log('data:');
-                        console.log(data);
-                    }
+
                     SE.compileSchoolInfo(lat, lng, rows);
                 }
             });
         });
     },
 
-    compileSchoolInfo : function(lat, lng, rows) {
+    compileSchoolInfo : function (lat, lng, rows) {
         SE.initMap(lat, lng);
 
         var schoolURIs = [];
         var inRangeSchools = [];
 
-        $.each(rows, function(i, s) {
+        $.each(rows, function (i, s) {
             var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, s["religion"].value, s["gender"].value);
 
             if (school_state == 'inrange') {
@@ -482,29 +468,22 @@ var SE = { // School Explorer
     },
 
     renderChart : {
-        ageGroups : function(schoolURIs, htmlNodeContainer) {
+        ageGroups : function (schoolURIs, htmlNodeContainer) {
             var uri = SE.C.AGEGROUPS_API_BASE + schoolURIs;
 
-            $.getJSON(uri, function(data, textStatus) {
-                if(SE.C.DEBUG){
-                    console.log(uri + " :");
-                    console.log(data);
-                }
-
+            $.getJSON(uri, function (data, textStatus) {
                 var agegroups = '';
                 var xdata = [];
                 var ydata = [];
 
-                if(data != null && data.data.length > 0){
+                if (data != null && data.data.length > 0) {
                     totalCalculated = 0;
-                    $.each(data.data, function(i, agegroup){
+                    $.each(data.data, function (i, agegroup) {
                         xdata.push(agegroup.age_label.value);
                         ydata.push(parseInt(agegroup.population.value));
                         totalCalculated = totalCalculated + parseInt(agegroup.population.value);
                     });
-    //                            if(SE.C.DEBUG){
-    //                                console.log("Got age group data: [" + xdata + " / "+ ydata + "]");
-    //                            }
+
                     SE.G.chartAPI = new jGCharts.Api();
                     agegroups += '<img src="' + SE.G.chartAPI.make({
                         data : ydata,
@@ -531,7 +510,7 @@ var SE = { // School Explorer
             });
         },
 
-        enrolment : function(school, htmlNodeContainer){
+        enrolment : function (school, htmlNodeContainer) {
             var uri = SE.C.ENROLMENT_API_BASE + encodeURIComponent(school["school"].value);
 
             var total = 0;
@@ -541,19 +520,14 @@ var SE = { // School Explorer
 
             htmlNodeContainer.append('<div class="enrolment processing"/>');
 
-            $.getJSON(uri, function(data, textStatus) {
-                if(SE.C.DEBUG){
-                    console.log(uri + ":");
-                    console.log(data);
-                }
-
+            $.getJSON(uri, function (data, textStatus) {
                 enrolment = '';
                 var xdata = [];
                 var ydata = [];
 
                 school_years = SE.C.SCHOOL_YEARS;
 
-                $.each(data.data, function(i, grade){
+                $.each(data.data, function (i, grade) {
                     if (school_years[grade.numberOfStudentsURI.value]) {
                         school_years[grade.numberOfStudentsURI.value].value = parseInt(grade.numberOfStudents.value);
                         totalCalculated = totalCalculated + school_years[grade.numberOfStudentsURI.value].value;
@@ -577,14 +551,10 @@ var SE = { // School Explorer
                     }
                 });
 
-                $.each(school_years, function(index, o) {
+                $.each(school_years, function (index, o) {
                     xdata.push(o.label);
                     ydata.push(o.value);
                 });
-
-    //            if(SE.C.DEBUG){
-    //                console.log("Got enrolment data: [" + xdata + " / "+ ydata + "]");
-    //            }
 
                 SE.G.chartAPI = new jGCharts.Api();
                 enrolment += '<img src="' + SE.G.chartAPI.make({
@@ -613,7 +583,7 @@ var SE = { // School Explorer
     },
 
 
-    addSchoolMarker : function(school, schoolSymbol){
+    addSchoolMarker : function (school, schoolSymbol) {
         var marker = new google.maps.Marker({
             position: new google.maps.LatLng(school["lat"].value, school["long"].value),
             map: SE.G.smap,
@@ -623,8 +593,8 @@ var SE = { // School Explorer
 
         SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
 /*
-        google.maps.event.addListener(marker, "click", function() {
-            SE.renderSchool(school, function(iwcontent){
+        google.maps.event.addListener(marker, "click", function () {
+            SE.renderSchool(school, function (iwcontent) {
                 SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
             });
             SE.showSchoolContext(school["school"].value);
@@ -635,20 +605,20 @@ var SE = { // School Explorer
     },
 
 
-    renderSchool : function(school, schoolSymbol){
+    renderSchool : function (school, schoolSymbol) {
         school_info = '<li id="school_' + SE.getSchoolNotation(school['school'].value) + '" class="school_info">';
 
         school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
         school_info += '<span class="head">Address:</span> ' + school["address1"].value;
-        if(school["address2"]) { school_info += ' ' + school["address2"].value; }
-        if(school["region_label"]) { school_info += ', ' + school["region_label"].value; }
+        if (school["address2"]) { school_info += ' ' + school["address2"].value; }
+        if (school["region_label"]) { school_info += ', ' + school["region_label"].value; }
 
         school_info += " | ";
 
-        if(school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
-        if(school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
-        if(school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
+        if (school["phaseOfEducation_label"]) { school_info += '<span class="head">Education:</span> ' + school["phaseOfEducation_label"].value + ' school | '; }
+        if (school["religion_label"]) { school_info += '<span class="head">Religion:</span> ' + school["religion_label"].value.toLowerCase() + ' | '; }
+        if (school["gender_label"]) { school_info += '<span class="head">Gender:</span> ' + school["gender_label"].value.toLowerCase(); }
         school_info += '</li>';
 
         $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
@@ -656,7 +626,7 @@ var SE = { // School Explorer
         SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
     },
 
-    determineSchoolRangeState : function(label, distance, religion, gender) {
+    determineSchoolRangeState : function (label, distance, religion, gender) {
         /*States: inapplicable, inrange, outofrange*/
         school_state = 'inrange';
 
@@ -677,17 +647,7 @@ var SE = { // School Explorer
        return school_state;
     },
 
-    drawMarker : function(school_marker, school_state, name, distance, religion, gender){
-//        if(SE.C.DEBUG) {
-//            console.log("--------");
-//            console.log("school_marker: " + school_marker);
-//            console.log("school_state: " + school_state);
-//            console.log("name: " + name);
-//            console.log("distance: " + distance);
-//            console.log("religion: " + religion);
-//            console.log("gender: " + gender);
-//        }
-
+    drawMarker : function (school_marker, school_state, name, distance, religion, gender) {
         // see also http://www.html5canvastutorials.com/
         var canvas = document.getElementById(SE.C.MARKER_DYNAM_ID); // our scribble board
         var context = canvas.getContext('2d');
@@ -711,12 +671,12 @@ var SE = { // School Explorer
 
         SE.C.GM_MARKER_SIZE.width = 16;
 
-        if(school_marker > 9) {
+        if (school_marker > 9) {
             SE.C.GM_MARKER_SIZE.width = 18;
             x_text = 3;
         }
 
-        if(school_marker > 99) {
+        if (school_marker > 99) {
             x = 0;
             SE.C.GM_MARKER_SIZE.width = 24;
             x_text = 3;
@@ -741,7 +701,7 @@ var SE = { // School Explorer
         context.fill();
         context.stroke();
 
-        if(school_marker > 0) {
+        if (school_marker > 0) {
             context.fillStyle = '#fff';
             context.font = "8pt monospace";
             context.fillText(school_marker, x_text, y_text);
@@ -753,19 +713,16 @@ var SE = { // School Explorer
     },
 
 
-    getSchoolInfo : function(schoolId) {
+    getSchoolInfo : function (schoolId) {
 
     },
 
-    showSchoolContext : function(){
+    showSchoolContext : function () {
         var schoolURI = SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + SE.getSchoolNotation(window.location.href);
         var uri = SE.C.INFO_API_BASE + encodeURIComponent(schoolURI);
 
-        $.getJSON(uri, function(data, textStatus) {
-            if(data.data) {
-                if(SE.C.DEBUG){
-                    console.log(data.data[0]);
-                }
+        $.getJSON(uri, function (data, textStatus) {
+            if (data.data) {
                 school = data.data[0];
 
                 if (!school["distance"]) {
@@ -792,41 +749,39 @@ var SE = { // School Explorer
         });
     },
 
-    hideSchoolContext : function(){
+    hideSchoolContext : function () {
         $('#' +  SE.C.SCHOOL_CONTEXT_ELEMENT_ID).slideUp();
         $('#' +  SE.C.DETAILS_ELEMENT_ID).css("width", "100%");
     },
 
-    nearbyBusy : function(){
+    nearbyBusy : function () {
         $('#' + SE.C.NEARBY_ELEMENT_ID).html("<div id='nearby_busy'><img src='../img/busy.gif' alt='busy'/><div>Retrieving data from <a href='http://linkedgeodata.org/About' target='_blank'>LinkedGeoData</a> ...</div></div>");
     },
 
     // for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
-    buildNearSchoolsURI : function(lat, lng, religion, gender){
+    buildNearSchoolsURI : function (lat, lng, religion, gender) {
         var r = "";
         if (religion != "") {
             r = "&religion=" + encodeURIComponent(religion);
         }
         var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + encodeURIComponent(gender) + r;
-        if(SE.C.DEBUG){
-            console.log(url);
-        }
+
         return url;
     },
 
     // for example: lgd_lookup?center=53.274795076024,-9.0540373672574&radius=1000
-    buildNearPOIURI : function(lat, lng, radius){
+    buildNearPOIURI : function (lat, lng, radius) {
         return SE.C.NEARBY_API_BASE + lat + "," + lng + "&radius=" + radius;
     },
 
-    position2Address : function(address, callback){
+    position2Address : function (address, callback) {
         var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({'address': address, 'region': 'ie'}, function(data, status) {
-            if(status == google.maps.GeocoderStatus.OK) {  
+        geocoder.geocode({'address': address, 'region': 'ie'}, function (data, status) {
+            if (status == google.maps.GeocoderStatus.OK) {  
                 var location = data[0].geometry.location,
                     lat = location.lat(),
                     lng = location.lng();
-                if(location) { // we have both values
+                if (location) { // we have both values
                     callback(lat, lng);
                 }
             }
@@ -836,7 +791,7 @@ var SE = { // School Explorer
         });
     },
 
-    initMap : function(mapCenterLat, mapCenterLng) {
+    initMap : function (mapCenterLat, mapCenterLng) {
         var mapOptions = { 
             zoom: SE.G.selectedZoomFactor,
             center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
@@ -863,7 +818,7 @@ var SE = { // School Explorer
         $.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
     },
 
-    renderSchoolOnSV : function(elemID, centerLoc){
+    renderSchoolOnSV : function (elemID, centerLoc) {
         // TODO: if no SV is available, show something else (?)
         var schoolpano = new google.maps.StreetViewPanorama(document.getElementById(elemID), {
             position : centerLoc,
@@ -881,30 +836,27 @@ var SE = { // School Explorer
         $('#' + elemID).slideDown('slow');
     },
 
-    renderSchoolNearby : function(elemID, lat, lng){
+    renderSchoolNearby : function (elemID, lat, lng) {
         // now, get the schools nearby things via LinkedGeoData
-        $.getJSON(SE.buildNearPOIURI(lat, lng, SE.G.contextRadius), function(data, textStatus){
-            if(data.data) {
+        $.getJSON(SE.buildNearPOIURI(lat, lng, SE.G.contextRadius), function (data, textStatus) {
+            if (data.data) {
                 var buf = [""];
                 var rows = data.data;
 
                 buf.push("<div class='nearby_pois'>");
-                if(rows.length > 0){
+                if (rows.length > 0) {
                     buf.push("<ul>");
                     for(i in rows) {
                         var row = rows[i];
                         var poiType = "";
 
                         buf.push("<li><a href='" + row["poi"].value +"' target='_blank'>" + row["poi_label"].value + "</a>");
-                        if(row["poi_type"]) {
+                        if (row["poi_type"]) {
                             poiType = row["poi_type"].value;
                             buf.push(" a <a href='" + poiType +"' target='_blank'>" + poiType.substring(poiType.lastIndexOf("/") + 1).toLowerCase() + "</a>");
                         }
-                        if(row["sameas"].value) {
+                        if (row["sameas"].value) {
                             buf.push(", see also <a href='" + row["sameas"].value +"' target='_blank'>DBpedia</a>");
-                            if(SE.C.DEBUG){
-                                console.log("For location: [" + lat + "," + lng + "] I found :" + row["sameas"].value);
-                            }
                         }
                         buf.push("</li>");
                     }
@@ -925,17 +877,17 @@ var SE = { // School Explorer
     },
 
 
-    getSchoolNotation : function(uri){
+    getSchoolNotation : function (uri) {
         return uri.substring(uri.lastIndexOf("/school/") + 8);
     },
 
 
-    determineRenderMode : function(){
+    determineRenderMode : function () {
         var currentURL = document.URL;
         var hashPos = currentURL.indexOf("#");
         var schoolID = "";
 
-        if(hashPos >= 0 && currentURL.substring(hashPos + 1) != ""){ // trigger single school rendering for a hash URI such as http://school-explorer.data-gov.ie/school#63000E
+        if (hashPos >= 0 && currentURL.substring(hashPos + 1) != "") { // trigger single school rendering for a hash URI such as http://school-explorer.data-gov.ie/school#63000E
             SE.G.currentMode = SE.C.SCHOOL_DETAIL_MODE;
             schoolID = currentURL.substring(hashPos + 1); // extract the school identifier, resulting in 63000E
             SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + schoolID;  // assemble school URI, resulting in  http://data-gov.ie/school/63000E
@@ -945,13 +897,12 @@ var SE = { // School Explorer
 //            window.location = SE.C.BASE_URI + "#";
             SE.renderSchoolOverview(); // show some overview stats and examples
         }
-        if(SE.C.DEBUG) console.log("School explorer opening in " + SE.G.currentMode + " mode ..."); 
     },
 
-    addSchoolInfo : function(schoolID, marker, iwcontent){
+    addSchoolInfo : function (schoolID, marker, iwcontent) {
         var infowindow = null;
         
-        if(schoolID in SE.G.iwlist){ // the info window has already be created just updated content
+        if (schoolID in SE.G.iwlist) { // the info window has already be created just updated content
             infowindow = SE.G.iwlist[schoolID];
         }
         else {
@@ -963,19 +914,19 @@ var SE = { // School Explorer
         return infowindow;
     },
 
-    getGenderCoding : function(gender){
-        if(gender.indexOf('Boys') > 0) return SE.G.genderCCodes['boys'];
-        if(gender.indexOf('Girls') > 0) return SE.G.genderCCodes['girls'];
+    getGenderCoding : function (gender) {
+        if (gender.indexOf('Boys') > 0) return SE.G.genderCCodes['boys'];
+        if (gender.indexOf('Girls') > 0) return SE.G.genderCCodes['girls'];
         return SE.G.genderCCodes['mixed'];
     },
 
-    getReligionCoding : function(religion){
-        if(religion.indexOf('catholic') > 0) return SE.G.religionCCodes['catholic']; // catholic is yellow
+    getReligionCoding : function (religion) {
+        if (religion.indexOf('catholic') > 0) return SE.G.religionCCodes['catholic']; // catholic is yellow
         return SE.G.religionCCodes['others']; // all others are white
     }
 };
 
-$(document).ready(function(){
+$(document).ready(function () {
     SE.init(); // start interaction
 
     bodyId = $('body').attr('id');
@@ -997,4 +948,3 @@ $(document).ready(function(){
             break;
     }
 });
-
