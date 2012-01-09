@@ -476,7 +476,7 @@ var SE = { // School Explorer
                 var xdata = [];
                 var ydata = [];
 
-                if (data != null && data.data.length > 0) {
+                if (data != null && data.data[0].length != 0) {
                     totalCalculated = 0;
                     $.each(data.data, function (i, agegroup) {
                         xdata.push(agegroup.age_label.value);
