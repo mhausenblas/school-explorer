@@ -813,6 +813,14 @@ var SE = { // School Explorer
             });
         }
 
+        new google.maps.Circle({
+          center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+          radius: parseInt($('#' + SE.C.DISTANCE_FIELD_ID).val()) * 1000, //in meters
+          map: SE.G.smap,
+          editable: true,
+          draggable: true
+        });
+
         // make map fit in the container and set in focus
         $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
         $.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
