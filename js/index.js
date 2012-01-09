@@ -814,11 +814,15 @@ var SE = { // School Explorer
         }
 
         new google.maps.Circle({
-          center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
-          radius: parseInt($('#' + SE.C.DISTANCE_FIELD_ID).val()) * 1000, //in meters
-          map: SE.G.smap,
-          editable: true,
-          draggable: true
+            center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+            radius: parseInt($('#' + SE.C.DISTANCE_FIELD_ID).val()) * 1000, //in meters
+            map: SE.G.smap,
+            editable: true,
+            draggable: true,
+            strokeColor: "#000000",
+            strokeWeight: 2,
+            fillColor: "#000000",
+            fillOpacity: 0.1
         });
 
         // make map fit in the container and set in focus
