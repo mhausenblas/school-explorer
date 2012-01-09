@@ -803,13 +803,15 @@ var SE = { // School Explorer
         // create the map with options from above
         SE.G.smap = new google.maps.Map(document.getElementById(SE.C.MAP_ELEMENT_ID), mapOptions);
 
-        // mark 'home', that is the location of the address the user entered
-        new google.maps.Marker({
-            position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
-            map: SE.G.smap,
-            icon: new google.maps.MarkerImage('/theme/base/images/illustrations/illu_home.png'),
-            title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
-        });
+        if ($('body#school').length != 1) {
+            // mark 'home', that is the location of the address the user entered
+            new google.maps.Marker({
+                position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+                map: SE.G.smap,
+                icon: new google.maps.MarkerImage('/theme/base/images/icons/icon_home.png'),
+                title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
+            });
+        }
 
         // make map fit in the container and set in focus
         $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
