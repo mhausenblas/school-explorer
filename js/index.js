@@ -591,15 +591,11 @@ var SE = { // School Explorer
             title: school["label"].value
         });
 
-        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
-/*
+//        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
+
         google.maps.event.addListener(marker, "click", function () {
-            SE.renderSchool(school, function (iwcontent) {
-                SE.G.iwlist[school["school"].value] = SE.addSchoolInfo(school["school"].value, marker, iwcontent); // remember info windows indexed by school ID
-            });
-            SE.showSchoolContext(school["school"].value);
+            $.scrollTo('#school_' + SE.getSchoolNotation(school['school'].value), {duration : 500});
         });
-*/
 
 //        SE.renderStats();
     },
@@ -721,7 +717,7 @@ var SE = { // School Explorer
         var schoolURI = SE.G.currentSchoolID = SE.C.SCHOOL_DATA_NS_URI + SE.getSchoolNotation(window.location.href);
         var uri = SE.C.INFO_API_BASE + encodeURIComponent(schoolURI);
 
-	$('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+        $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 
         $.getJSON(uri, function (data, textStatus) {
             if (data.data) {
