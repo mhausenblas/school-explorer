@@ -804,8 +804,7 @@ var SE = { // School Explorer
         SE.G.smap = new google.maps.Map(document.getElementById(SE.C.MAP_ELEMENT_ID), mapOptions);
 
         if ($('body#school').length != 1) {
-            // mark 'home', that is the location of the address the user entered
-            new google.maps.Marker({
+            homeMarker = new google.maps.Marker({
                 position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
                 map: SE.G.smap,
                 icon: new google.maps.MarkerImage('/theme/base/images/icons/icon_home.png'),
@@ -813,7 +812,7 @@ var SE = { // School Explorer
             });
         }
 
-        new google.maps.Circle({
+        var circle = {
             center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
             radius: parseInt($('#' + SE.C.DISTANCE_FIELD_ID).val()) * 1000, //in meters
             map: SE.G.smap,
@@ -823,6 +822,22 @@ var SE = { // School Explorer
             strokeWeight: 2,
             fillColor: "#000000",
             fillOpacity: 0.1
+        }
+
+        rangeControl = new google.maps.Circle(circle);
+
+        google.maps.event.addListener(rangeControl, "radius_changed", function () {
+            radius = rangeControl.getRadius();
+            console.log('Radius changed:');
+            console.log(radius);
+            //TODO: Use the new radius to make a new SPARQL query.
+        });
+
+        google.maps.event.addListener(rangeControl, "center_changed", function () {
+            console.log('Center changed:');
+            console.log(rangeControl.center['Pa']);
+            console.log(rangeControl.center['Qa']);
+            //TODO: Use the new center to make a new SPARQL query.
         });
 
         // make map fit in the container and set in focus
