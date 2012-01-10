@@ -414,15 +414,15 @@ var SE = { // School Explorer
         $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 
         SE.position2Address(SE.I.SCHOOL_ADDRESS, function (lat, lng) { // get the location from address and show the 'nearby' schools
-            // now, get the schools around this address
+            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+        });
+    },
 
-            $.getJSON(SE.buildNearSchoolsURI(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER), function (data, textStatus) {
-                if (data.data) {
-                    var rows = data.data;
-
-                    SE.compileSchoolInfo(lat, lng, rows);
-                }
-            });
+    showSchoolsNearLocation : function (lat, lng, religion, gender) {
+        $.getJSON(SE.buildNearSchoolsURI(lat, lng, religion, gender), function (data, textStatus) {
+            if (data.data) {
+                SE.compileSchoolInfo(lat, lng, data.data);
+            }
         });
     },
 
@@ -834,10 +834,8 @@ var SE = { // School Explorer
         });
 
         google.maps.event.addListener(rangeControl, "center_changed", function () {
-            console.log('Center changed:');
-            console.log(rangeControl.center['Pa']);
-            console.log(rangeControl.center['Qa']);
-            //TODO: Use the new center to make a new SPARQL query.
+            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
         });
 
         // make map fit in the container and set in focus
