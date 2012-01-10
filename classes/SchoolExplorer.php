@@ -385,7 +385,7 @@ EOD;
         //Using arrays for query paramaters for extensibility
         $this->config['apiElements'] = array(
             'info' => array('school_id', 'school_name'),
-            'near' => array('center', 'religion', 'gender'), //How about we use en-uk's "centre"?
+            'near' => array('center', 'distance', 'religion', 'gender'), //How about we use en-uk's "centre"?
             'enrolment' => array('school_id'),
             'agegroups' => array('school_id'),
             'lgd_lookup' => array('center', 'radius')
@@ -618,7 +618,7 @@ EOD;
                             $schoolGraph
                             $religionGraph
                             $genderGraph
-                            BIND ((afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) * 100) AS ?distance)
+                            BIND ((afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) * 100000) AS ?distance)
                         }
                         ORDER BY ?distance
                         LIMIT 10

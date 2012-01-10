@@ -414,12 +414,12 @@ var SE = { // School Explorer
         $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 
         SE.position2Address(SE.I.SCHOOL_ADDRESS, function (lat, lng) { // get the location from address and show the 'nearby' schools
-            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
         });
     },
 
-    showSchoolsNearLocation : function (lat, lng, religion, gender) {
-        $.getJSON(SE.buildNearSchoolsURI(lat, lng, religion, gender), function (data, textStatus) {
+    showSchoolsNearLocation : function (lat, lng, distance, religion, gender) {
+        $.getJSON(SE.buildNearSchoolsURI(lat, lng, distance, religion, gender), function (data, textStatus) {
             if (data.data) {
                 SE.compileSchoolInfo(lat, lng, data.data);
             }
@@ -606,7 +606,7 @@ var SE = { // School Explorer
 
         school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
-        school_info += '<span class="head">Address:</span> ' + school["address1"].value;
+        if (school["address1"]) { school_info += '<span class="head">Address:</span> ' + school["address1"].value; }
         if (school["address2"]) { school_info += ' ' + school["address2"].value; }
         if (school["region_label"]) { school_info += ', ' + school["region_label"].value; }
 
@@ -626,7 +626,7 @@ var SE = { // School Explorer
         /*States: inapplicable, inrange, outofrange*/
         school_state = 'inrange';
 
-        if (SE.I.SCHOOL_DISTANCE.length > 0 && parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
+        if (parseFloat(distance) > parseFloat(SE.I.SCHOOL_DISTANCE)) {
             school_state = 'outofrange';
         }
 
@@ -756,13 +756,13 @@ var SE = { // School Explorer
         $('#' + SE.C.NEARBY_ELEMENT_ID).html("<div id='nearby_busy'><img src='../img/busy.gif' alt='busy'/><div>Retrieving data from <a href='http://linkedgeodata.org/About' target='_blank'>LinkedGeoData</a> ...</div></div>");
     },
 
-    // for example: near?center=53.289,-9.0820&religion=Catholic&gender=Gender_Boys
-    buildNearSchoolsURI : function (lat, lng, religion, gender) {
+    // for example: near?center=53.289,-9.0820&distance=5000&religion=Catholic&gender=Gender_Boys
+    buildNearSchoolsURI : function (lat, lng, distance, religion, gender) {
         var r = "";
         if (religion != "") {
             r = "&religion=" + encodeURIComponent(religion);
         }
-        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&gender=" + encodeURIComponent(gender) + r;
+        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + "&gender=" + encodeURIComponent(gender) + r;
 
         return url;
     },
@@ -790,9 +790,13 @@ var SE = { // School Explorer
     },
 
     initMap : function (mapCenterLat, mapCenterLng) {
+        mapCenterCoords = new google.maps.LatLng(mapCenterLat, mapCenterLng);
+        SE.I.MAPCENTER_LAT = mapCenterLat;
+        SE.I.MAPCENTER_LONG = mapCenterLng;
+
         var mapOptions = { 
             zoom: SE.G.selectedZoomFactor,
-            center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+            center: mapCenterCoords,
             mapTypeId: SE.C.MAP_TYPE,
             overviewMapControl: true,
             overviewMapControlOptions: {
@@ -805,7 +809,7 @@ var SE = { // School Explorer
 
         if ($('body#school').length != 1) {
             homeMarker = new google.maps.Marker({
-                position: new google.maps.LatLng(mapCenterLat, mapCenterLng),
+                position: mapCenterCoords,
                 map: SE.G.smap,
                 icon: new google.maps.MarkerImage('/theme/base/images/icons/icon_home.png'),
                 title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
@@ -813,8 +817,8 @@ var SE = { // School Explorer
         }
 
         var circle = {
-            center: new google.maps.LatLng(mapCenterLat, mapCenterLng),
-            radius: parseInt($('#' + SE.C.DISTANCE_FIELD_ID).val()) * 1000, //in meters
+            center: mapCenterCoords,
+            radius: parseInt(SE.I.SCHOOL_DISTANCE),
             map: SE.G.smap,
             editable: true,
             draggable: true,
@@ -827,15 +831,17 @@ var SE = { // School Explorer
         rangeControl = new google.maps.Circle(circle);
 
         google.maps.event.addListener(rangeControl, "radius_changed", function () {
-            radius = rangeControl.getRadius();
-            console.log('Radius changed:');
-            console.log(radius);
-            //TODO: Use the new radius to make a new SPARQL query.
+            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+            SE.I.SCHOOL_DISTANCE = radius = rangeControl.getRadius();
+            console.log('Radius changed:' + parseInt(SE.I.SCHOOL_DISTANCE));
+            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
         });
 
         google.maps.event.addListener(rangeControl, "center_changed", function () {
             $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
-            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            SE.I.MAPCENTER_LAT = rangeControl.center['Pa'];
+            SE.I.MAPCENTER_LONG = rangeControl.center['Qa'];
+            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
         });
 
         // make map fit in the container and set in focus
