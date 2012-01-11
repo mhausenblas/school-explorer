@@ -588,11 +588,18 @@ var SE = { // School Explorer
 
 //        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
 
-        google.maps.event.addListener(marker, "click", function () {
-            $.scrollTo('#school_' + SE.getSchoolNotation(school['school'].value), {duration : 500});
-        });
+        var school_state = SE.determineSchoolRangeState(school["label"].value, school["distance"].value, school["religion"].value, school["gender"].value);
 
-//        SE.renderStats();
+        if (school_state == 'inrange') {
+            google.maps.event.addListener(marker, "click", function () {
+                $.scrollTo('#school_' + SE.getSchoolNotation(school['school'].value), {duration : 500});
+            });
+        }
+        else {
+            google.maps.event.addListener(marker, "click", function () {
+                window.location = SE.replaceURIsHost(school["school"].value, window.location.host);
+            });
+        }
     },
 
 
@@ -815,18 +822,16 @@ console.log(url);
         // create the map with options from above
         SE.G.smap = new google.maps.Map(document.getElementById(SE.C.MAP_ELEMENT_ID), mapOptions);
 
-        function getBoundsReloadMap() {
-            SE.G.mapBounds = SE.G.smap.getBounds();
-            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
-            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
-        }
-
         google.maps.event.addListener(SE.G.smap, 'dragend', function() {
-            getBoundsReloadMap();
+            SE.getBoundsReloadMap();
         });
 
         google.maps.event.addListener(SE.G.smap, 'zoom_changed', function() {
-            getBoundsReloadMap();
+            SE.getBoundsReloadMap();
+        });
+
+        google.maps.event.addListener(SE.G.smap, 'dblclick', function() {
+            SE.getBoundsReloadMap();
         });
 
         if ($('body#school').length != 1) {
@@ -868,6 +873,12 @@ console.log(url);
         // make map fit in the container and set in focus
         $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
         $.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
+    },
+
+    getBoundsReloadMap : function () {
+        SE.G.mapBounds = SE.G.smap.getBounds();
+        $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+        SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
     },
 
     renderSchoolOnSV : function (elemID, centerLoc) {
