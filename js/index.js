@@ -770,10 +770,7 @@ var SE = { // School Explorer
             boundary = '&south=' + south + '&west=' + west + '&north=' + north + '&east=' + east;
         }
 
-        if (religion != "") {
-            r = "&religion=" + encodeURIComponent(religion);
-        }
-        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + /*"&gender=" + encodeURIComponent(gender) + r +*/ boundary;
+        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + boundary;
 console.log(url);
         return url;
     },
