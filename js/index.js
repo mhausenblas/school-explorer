@@ -235,9 +235,6 @@ var SE = { // School Explorer
         SE.showSchools();
     },
 
-    initMapPanel : function () {
-    },
-
     initNearbyPanel : function () {
         SE.showSchoolContext();
 
@@ -597,7 +594,7 @@ var SE = { // School Explorer
         }
         else {
             google.maps.event.addListener(marker, "click", function () {
-                window.location = SE.replaceURIsHost(school["school"].value, window.location.host);
+                window.open(SE.replaceURIsHost(school["school"].value, window.location.host), '_blank');
             });
         }
     },
@@ -606,7 +603,7 @@ var SE = { // School Explorer
     renderSchool : function (school, schoolSymbol) {
         school_info = '<li id="school_' + SE.getSchoolNotation(school['school'].value) + '" class="school_info">';
 
-        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '">' + school["label"].value + '</a></h2>';
+        school_info += '<h2><img src="' + schoolSymbol +'"/> ' + '<a href="' + SE.replaceURIsHost(school["school"].value, window.location.host) + '" target="_blank">' + school["label"].value + '</a></h2>';
         school_info += '<div class="summary">';
         if (school["address1"]) { school_info += '<span class="head">Address:</span> ' + school["address1"].value; }
         if (school["address2"]) { school_info += ' ' + school["address2"].value; }
