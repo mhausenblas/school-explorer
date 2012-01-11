@@ -94,7 +94,7 @@ var SE = { // School Explorer
         smap : null, // the google.maps.Map object
         smapWidth : 0.6, // the preferred width of the map
         smapHeight : 1, // the preferred height of the map
-        selectedZoomFactor : 11, // keeps track of the selected zoom factor ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
+        selectedZoomFactor : 12, // keeps track of the selected zoom factor ( 7 ~ all Ireland, 10 - 12 ~ county-level, > 12 ~ village-level)
         genderCCodes : { 'boys' : '#11f', 'girls' : '#f6f', 'mixed' : '#fff' },
         religionCCodes : { 'catholic' : '#ff3', 'others' : '#fff' },
         slist : {}, // 'associative' array (school ID -> school)*
@@ -599,7 +599,6 @@ var SE = { // School Explorer
         }
     },
 
-
     renderSchool : function (school, schoolSymbol) {
         school_info = '<li id="school_' + SE.getSchoolNotation(school['school'].value) + '" class="school_info">';
 
@@ -631,11 +630,11 @@ var SE = { // School Explorer
 
         //TODO: Age
 
-        if (SE.I.SCHOOL_RELIGION.length > 0 && religion != SE.I.SCHOOL_RELIGION) {
+        if (SE.I.SCHOOL_RELIGION != '' && religion != SE.I.SCHOOL_RELIGION) {
             school_state = 'inapplicable';
         }
 
-        if (SE.I.SCHOOL_GENDER.length > 0 && gender != SE.I.SCHOOL_GENDER) {
+        if (gender != SE.I.SCHOOL_GENDER) {
             school_state = 'inapplicable';
         }
 
@@ -774,7 +773,7 @@ var SE = { // School Explorer
         if (religion != "") {
             r = "&religion=" + encodeURIComponent(religion);
         }
-        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + "&gender=" + encodeURIComponent(gender) + r + boundary;
+        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + /*"&gender=" + encodeURIComponent(gender) + r +*/ boundary;
 console.log(url);
         return url;
     },
