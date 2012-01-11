@@ -385,7 +385,7 @@ EOD;
         //Using arrays for query paramaters for extensibility
         $this->config['apiElements'] = array(
             'info' => array('school_id', 'school_name'),
-            'near' => array('center', 'distance', 'religion', 'gender'), //How about we use en-uk's "centre"?
+            'near' => array('center', 'distance', 'south', 'west', 'north', 'east', 'religion', 'gender'), //How about we use en-uk's "centre"?
             'enrolment' => array('school_id'),
             'agegroups' => array('school_id'),
             'lgd_lookup' => array('center', 'radius')
@@ -499,9 +499,13 @@ EOD;
         $location   = $this->getLocation($apiEKV);
         $schoolId   = $this->getFormValue($apiEKV, 'school_id');
         $schoolName = $this->getFormValue($apiEKV, 'school_name');
+        $distance   = $this->getFormValue($apiEKV, 'distance');
+        $south      = $this->getFormValue($apiEKV, 'south');
+        $west       = $this->getFormValue($apiEKV, 'west');
+        $north      = $this->getFormValue($apiEKV, 'north');
+        $east       = $this->getFormValue($apiEKV, 'east');
         $religion   = $this->getFormValue($apiEKV, 'religion');
         $gender     = $this->getFormValue($apiEKV, 'gender');
-        $distance   = $this->getFormValue($apiEKV, 'distance');
         $age        = $this->getFormValue($apiEKV, 'age');
 
         if (!empty($schoolId)) {
@@ -539,6 +543,15 @@ EOD;
             }
 
 EOD;
+
+
+        $boundaryGraph = '';
+        if (!empty($south) && !empty($west) && !empty($north) && !empty($east)) {
+            $boundaryGraph = <<<EOD
+                FILTER (?lat >= $south && ?lat <= $north)
+                FILTER (?long >= $west && ?long <= $east)
+EOD;
+        }
 
         $religionGraph = '';
         if (!empty($religion)) {
@@ -619,9 +632,10 @@ EOD;
                             $religionGraph
                             $genderGraph
                             BIND ((afn:sqrt (($location[0] - ?lat) * ($location[0] - ?lat) + ($location[1] - ?long) * ($location[1] - ?long)) * 100000) AS ?distance)
+                            $boundaryGraph
                         }
                         ORDER BY ?distance
-                        LIMIT 10
+
 EOD;
                     $uri = $this->buildQueryURI($query);
 

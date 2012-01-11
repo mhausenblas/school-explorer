@@ -103,7 +103,8 @@ var SE = { // School Explorer
         vlist : [], //  array of 'visited' schools (schoolID)*
         chartAPI : null, // the jgcharts object http://www.maxb.net/scripts/jgcharts
         contextRadius : 500, // in m ... used for querying the LGD POIs
-        currentSchoolID : null // selected school
+        currentSchoolID : null, // selected school
+        useMapBounds : true, //wheather to use the map's bounding coordinates for the query or not
     },
 
     I : {  }, // Input values
@@ -406,15 +407,11 @@ var SE = { // School Explorer
     showSchools : function () {
         SE.getSchoolSearchValues();
 
-//        $('#' + SE.C.SCHOOLS_OVERVIEW_ELEMENT_ID).slideUp("slow");
-//        $('#' + SE.C.LEGEND_ELEMENT_ID).slideDown("slow"); // show the legend
-
-//        SE.hideSchoolContext(); // make sure the previous school context is reset
-
         $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
 
         SE.position2Address(SE.I.SCHOOL_ADDRESS, function (lat, lng) { // get the location from address and show the 'nearby' schools
-            SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            SE.initMap(lat, lng);
+            var timeoutID = window.setTimeout(SE.showSchoolsNearLocation, 500, lat, lng, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
         });
     },
 
@@ -427,8 +424,6 @@ var SE = { // School Explorer
     },
 
     compileSchoolInfo : function (lat, lng, rows) {
-        SE.initMap(lat, lng);
-
         var schoolURIs = [];
         var inRangeSchools = [];
 
@@ -759,11 +754,24 @@ var SE = { // School Explorer
     // for example: near?center=53.289,-9.0820&distance=5000&religion=Catholic&gender=Gender_Boys
     buildNearSchoolsURI : function (lat, lng, distance, religion, gender) {
         var r = "";
+        var boundary = "";
+
+        if (SE.G.useMapBounds) {
+            SE.G.mapBounds = SE.G.smap.getBounds();
+
+            var south = SE.G.mapBounds.Y['b'];
+            var west = SE.G.mapBounds.$['b'];
+            var north = SE.G.mapBounds.Y['d'];
+            var east = SE.G.mapBounds.$['d'];
+
+            boundary = '&south=' + south + '&west=' + west + '&north=' + north + '&east=' + east;
+        }
+
         if (religion != "") {
             r = "&religion=" + encodeURIComponent(religion);
         }
-        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + "&gender=" + encodeURIComponent(gender) + r;
-
+        var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + "&gender=" + encodeURIComponent(gender) + r + boundary;
+console.log(url);
         return url;
     },
 
@@ -807,6 +815,20 @@ var SE = { // School Explorer
         // create the map with options from above
         SE.G.smap = new google.maps.Map(document.getElementById(SE.C.MAP_ELEMENT_ID), mapOptions);
 
+        function getBoundsReloadMap() {
+            SE.G.mapBounds = SE.G.smap.getBounds();
+            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+        }
+
+        google.maps.event.addListener(SE.G.smap, 'dragend', function() {
+            getBoundsReloadMap();
+        });
+
+        google.maps.event.addListener(SE.G.smap, 'zoom_changed', function() {
+            getBoundsReloadMap();
+        });
+
         if ($('body#school').length != 1) {
             homeMarker = new google.maps.Marker({
                 position: mapCenterCoords,
@@ -814,35 +836,34 @@ var SE = { // School Explorer
                 icon: new google.maps.MarkerImage('/theme/base/images/icons/icon_home.png'),
                 title: $('#' + SE.C.ADDRESS_FIELD_ID).val()
             });
+
+            var circle = {
+                center: mapCenterCoords,
+                radius: parseInt(SE.I.SCHOOL_DISTANCE),
+                map: SE.G.smap,
+                editable: true,
+                draggable: true,
+                strokeColor: "#000000",
+                strokeWeight: 2,
+                fillColor: "#000000",
+                fillOpacity: 0.1
+            }
+
+            rangeControl = new google.maps.Circle(circle);
+
+            google.maps.event.addListener(rangeControl, "radius_changed", function () {
+                $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+                SE.I.SCHOOL_DISTANCE = radius = rangeControl.getRadius();
+                SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            });
+
+            google.maps.event.addListener(rangeControl, "center_changed", function () {
+                $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
+                SE.I.MAPCENTER_LAT = rangeControl.center['Pa'];
+                SE.I.MAPCENTER_LONG = rangeControl.center['Qa'];
+                SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            });
         }
-
-        var circle = {
-            center: mapCenterCoords,
-            radius: parseInt(SE.I.SCHOOL_DISTANCE),
-            map: SE.G.smap,
-            editable: true,
-            draggable: true,
-            strokeColor: "#000000",
-            strokeWeight: 2,
-            fillColor: "#000000",
-            fillOpacity: 0.1
-        }
-
-        rangeControl = new google.maps.Circle(circle);
-
-        google.maps.event.addListener(rangeControl, "radius_changed", function () {
-            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
-            SE.I.SCHOOL_DISTANCE = radius = rangeControl.getRadius();
-            console.log('Radius changed:' + parseInt(SE.I.SCHOOL_DISTANCE));
-            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
-        });
-
-        google.maps.event.addListener(rangeControl, "center_changed", function () {
-            $('#' + SE.C.DETAILS_ELEMENT_ID).empty();
-            SE.I.MAPCENTER_LAT = rangeControl.center['Pa'];
-            SE.I.MAPCENTER_LONG = rangeControl.center['Qa'];
-            SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
-        });
 
         // make map fit in the container and set in focus
         $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
