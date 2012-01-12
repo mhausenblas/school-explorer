@@ -58,7 +58,7 @@ class SchoolExplorer
     }
 
 
-    function school()
+    function getSchool()
     {
         $paths = $this->config['requestPath'];
 
@@ -121,13 +121,14 @@ EOD;
 
         $response = json_decode($response, true);
 
+/*
         if (isset($paths[1]) && !empty($paths[1])) {
             $response = $this->showSchool($response);
         }
         else {
             $response = $this->showList($response, 'Schools');
         }
-
+*/
         return $response;
     }
 
@@ -194,6 +195,7 @@ EOD;
                 foreach($value as $k => $v) {
                     $property = '';
                     $object = '';
+
                     switch ($k) {
                         case 'identifier':
                             $property = 'School ID';
@@ -269,6 +271,22 @@ EOD;
         }
 
         return $s;
+    }
+
+
+    function getSchoolValues($data) {
+        $vars = $data['head']['vars'];
+        $bindings = $data['results']['bindings'];
+
+        $kv = array();
+
+        foreach($bindings as $key => $value) {
+            foreach($value as $k => $v) {
+                $kv[$k] = $v['value'];
+            }
+        }
+
+        return $kv;
     }
 
 

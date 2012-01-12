@@ -1,4 +1,8 @@
 <?php require_once 'head.html'; ?>
+<?php
+    $school = $this->getSchool();
+    $schoolData = $this->getSchoolValues($school);
+?>
         <title>School &#8212; School Explorer</title>
         <meta name="description" content="Information about schools to help parents to decide where to send their kids to."/>
     </head>
@@ -8,9 +12,62 @@
 <?php require_once 'header.html'; ?>
             <div id="core">
                 <div id="content">
-                    <h1>School</h1>
+                    <h1><?php echo $schoolData['label'] ?></h1>
 
                     <div id="content_inner">
+                        <div id="school_info">
+                            <p id="school_id">Roll number: <?php echo $schoolData['identifier']; ?></p>
+
+<?php
+    $religion = (empty($schoolData['religionLabel']['value'])) ? '<a href="'.$schoolData['religion'].'">'.$schoolData['religion'].'</a>' : '<a href="'.$schoolData['religion'].'">'.$schoolData['religionLabel'].'</a>';
+
+    $gender = (empty($schoolData['genderLabel']['value'])) ? '<a href="'.$schoolData['gender'].'">'.$schoolData['gender'].'</a>' : '<a href="'.$schoolData['gender'].'">'.$schoolData['genderLabel'].'</a>';
+
+?>
+                            <p><?php echo $religion . ', gender ' . $gender; ?></p>
+
+<?php
+    $a = array('address1', 'address2', 'address3');
+    $addresses = '';
+    foreach ($a as $key) {
+        if (isset($schoolData[$key])) {
+            $addresses[] = $schoolData[$key];
+        }
+    }
+
+    $addresses = implode(", ", $addresses) . ", ";
+
+    $addresses .= (empty($schoolData['regionLabel']['value'])) ? '<a href="'.$schoolData['region'].'">'.$schoolData['region'].'</a>' : '<a href="'.$schoolData['region'].'">'.$schoolData['regionLabel'].'</a>';
+?>
+
+                            <p id="school_address"><?php echo $addresses; ?></p>
+
+<?php
+    $students = '';
+
+    if (isset($schoolData['numberOfStudentsBoys']) ||
+        isset($schoolData['numberOfStudentsGirls']) ||
+        isset($schoolData['numberOfStudents'])) {
+        $students .= '<div id="school_number-of-students">';
+        $students .= '<p>Number of Students:</p>';
+        $students .= "\n".'<dl>';
+        if (isset($schoolData['numberOfBoyStudents'])) {
+            $students .= '<dt>Boys</dt><dd>'.$schoolData['numberOfBoyStudents'].'</dd>';
+        }
+        if (isset($schoolData['numberOfGirlStudents'])) {
+            $students .= '<dt>Girls</dt><dd>'.$schoolData['numberOfGirlStudents'].'</dd>';
+        }
+        if (isset($schoolData['numberOfStudents'])) {
+            $students .= '<dt>Total</dt><dd>'.$schoolData['numberOfStudents'].'</dd>';
+        }
+        $students .= '</div>';
+    }
+?>
+
+                            <?php echo $students; ?>
+                        </div>
+
+
                         <div id="school_results">
                             <div id="school_legend"></div>
                             <div id="school_map"></div>
@@ -25,10 +82,11 @@
                             <div id="school_nearby_slider"></div>
                             <div id="school_nearby"></div>
                         </div>
-
 <?php
-    echo $this->school();
+//    print_r($school);
+//    print_r($schoolData);
 ?>
+
                     </div>
                 </div>
             </div>

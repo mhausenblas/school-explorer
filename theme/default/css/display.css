@@ -306,21 +306,25 @@ text-align: left;
 
 #school_info {
 float:left;
-margin-left:5em;
 width:550px;
 }
-#school_info dl,
-#school_info dt,
-#school_info dd {
+
+#school_number-of-students p {
+margin-bottom:0.25em;
+}
+
+#school_number-of-students dl,
+#school_number-of-students dt,
+#school_number-of-students dd {
 float:left;
 }
-#school_info dt {
+#school_number-of-students dt {
 clear:left;
 width:40%;
 }
-#school_info dd {
+#school_number-of-students dd {
 margin-left:2em;
-width:50%;
+margin-bottom:0.25em;
 }
 
 
