@@ -401,7 +401,7 @@ EOD;
         //Using arrays for query paramaters for extensibility
         $this->config['apiElements'] = array(
             'info' => array('school_id', 'school_name'),
-            'near' => array('center', 'distance', 'south', 'west', 'north', 'east', 'religion', 'gender'), //How about we use en-uk's "centre"?
+            'near' => array('center', 'distance', 'south', 'west', 'north', 'east', 'age', 'religion', 'gender'), //How about we use en-uk's "centre"?
             'enrolment' => array('school_id'),
             'agegroups' => array('school_id'),
             'lgd_lookup' => array('center', 'radius')
@@ -543,6 +543,7 @@ EOD;
             OPTIONAL { $school sch-ont:address [ sch-ont:region ?region ] . }
 
             OPTIONAL { $school sch-ont:phaseOfEducation [ skos:prefLabel ?phaseOfEducation_label ] . }
+            OPTIONAL { $school sch-ont:phaseOfEducation ?phaseOfEducation . }
 
             OPTIONAL { $school sch-ont:gender [ skos:prefLabel ?gender_label ] . }
             OPTIONAL { $school sch-ont:gender ?gender . }
@@ -607,7 +608,7 @@ EOD;
             case 'info':
                 if (!empty($schoolId)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?phaseOfEducation_label
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?phaseOfEducation ?phaseOfEducation_label
                         WHERE {
                             $schoolGraph
                         }
@@ -619,7 +620,7 @@ EOD;
                 }
                 else if (!empty($schoolName)) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?region_label ?religion ?religion_label ?lat ?long ?phaseOfEducation ?phaseOfEducation_label
                         WHERE {
                             $schoolGraph
                             FILTER ("$schoolName" = str(?label))
@@ -642,7 +643,7 @@ EOD;
             case 'near':
                 if (count($location) == 2) {
                     $query = <<<EOD
-                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?region ?phaseOfEducation_label ?region_label ?religion ?religion_label ?lat ?long ?distance
+                        SELECT DISTINCT ?school ?label ?address1 ?address2 ?address3 ?gender ?gender_label ?phaseOfEducation ?phaseOfEducation_label ?region_label ?religion ?religion_label ?lat ?long ?distance
                         WHERE {
                             $schoolGraph
                             $religionGraph
@@ -748,6 +749,7 @@ EOD;
         $data = array();
 
         if (count($location) == 2) {
+        echo "http://linkedgeodata.org/data/near/".$location[0].','.$location[1]."/$radius";exit;
             $rdf = new EasyRdf_Graph("http://linkedgeodata.org/data/near/".$location[0].','.$location[1]."/$radius");
             $rdf->load();
 

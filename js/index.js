@@ -634,6 +634,9 @@ var SE = { // School Explorer
         }
 
         //TODO: Age
+        if (SE.I.SCHOOL_AGE != '' && age != SE.I.SCHOOL_AGE) {
+            school_state = 'inapplicable';
+        }
 
         if (SE.I.SCHOOL_RELIGION != '' && religion != SE.I.SCHOOL_RELIGION) {
             school_state = 'inapplicable';
