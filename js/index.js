@@ -12,7 +12,7 @@
 var SE = { // School Explorer
 
     C : { // constant SE-wide values
-        DEBUG : false,
+        DEBUG : true,
 
         SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
 
@@ -788,7 +788,10 @@ var SE = { // School Explorer
         }
 
         var url = SE.C.NEAR_API_BASE + lat + "," + lng + "&distance=" + parseInt(distance) + boundary;
-console.log(url);
+
+        if (SE.C.DEBUG) {
+            console.log(url);
+        }
         return url;
     },
 
