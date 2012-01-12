@@ -427,7 +427,8 @@ var SE = { // School Explorer
         var inRangeSchools = [];
 
         $.each(rows, function (i, s) {
-            var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, s["religion"].value, s["gender"].value);
+            var age = s["phaseOfEducation"].value || '';
+            var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, age, s["religion"].value, s["gender"].value);
 
             if (school_state == 'inrange') {
                 inRangeSchools.push(s['school'].value);
@@ -454,7 +455,8 @@ var SE = { // School Explorer
         for(i in rows) {
             var row = rows[i];
 
-            var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
+            var age = row["phaseOfEducation"].value || '';
+            var school_state = SE.determineSchoolRangeState(row["label"].value, row["distance"].value, age, row["religion"].value, row["gender"].value);
 
             var school_marker = (school_state == 'inrange') ? ++counter : 0;
             var schoolSymbol = SE.drawMarker(school_marker, school_state, row["label"].value, row["distance"].value, row["religion"].value, row["gender"].value);
@@ -601,7 +603,8 @@ var SE = { // School Explorer
 
 //        SE.G.mlist[school["school"].value] = marker; // remember marker indexed by school ID
 
-        var school_state = SE.determineSchoolRangeState(school["label"].value, school["distance"].value, school["religion"].value, school["gender"].value);
+        var age = school["phaseOfEducation"].value || '';
+        var school_state = SE.determineSchoolRangeState(school["label"].value, school["distance"].value, age, school["religion"].value, school["gender"].value);
 
         if (school_state == 'inrange') {
             google.maps.event.addListener(marker, "click", function () {
@@ -636,7 +639,7 @@ var SE = { // School Explorer
         var timeoutID = window.setTimeout(SE.renderChart.enrolment, 300, school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
     },
 
-    determineSchoolRangeState : function (label, distance, religion, gender) {
+    determineSchoolRangeState : function (label, distance, age, religion, gender) {
         /*States: inapplicable, inrange, outofrange*/
         school_state = 'inrange';
 
