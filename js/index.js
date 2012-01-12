@@ -734,6 +734,15 @@ var SE = { // School Explorer
 
                 schoolLocation = new google.maps.LatLng(school["lat"].value, school["long"].value);
 
+                //FIXME: This is needs to refactored. Not the best location to have this.
+                bodyId = $('body').attr('id');
+                if (bodyId == 'school') {
+                    SE.initMap(school["lat"].value, school["long"].value);
+                    var schoolSymbol = SE.drawMarker(1, 'inrange', school["label"].value, 0, school["religion"].value, school["gender"].value);
+                    SE.addSchoolMarker(school, schoolSymbol);
+                }
+                //
+
                 SE.renderSchoolOnSV(SE.C.SV_MAP_ELEMENT_ID, schoolLocation);
                 SE.nearbyBusy();
                 $('#' + SE.C.SCHOOL_CONTEXT_ELEMENT_ID).show();
@@ -983,16 +992,16 @@ console.log(url);
 };
 
 $(document).ready(function () {
-    SE.init(); // start interaction
-
     bodyId = $('body').attr('id');
 
     switch (bodyId) {
         case 'home':
+            SE.init();
             SE.renderSchoolOverview();
             break;
 
         case 'map':
+            SE.init();
                 // TESTS:
                 // SE.initSVMap("school_details", new google.maps.LatLng(53.289,-9.082));
                 // $('#' + SE.C.DETAILS_ELEMENT_ID).html("<div style='background: #303030; padding: 1em;'><img src='" + SE.drawMarker("test school", "http://data-gov.ie/ReligiousCharacter/Catholic", "http://education.data.gov.uk/ontology/school#Gender_Boys") + "' alt='test'/></div>");

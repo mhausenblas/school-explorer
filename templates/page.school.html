@@ -2,6 +2,7 @@
 <?php
     $school = $this->getSchool();
     $schoolData = $this->getSchoolValues($school);
+//    print_r($schoolData);
 ?>
         <title>School &#8212; School Explorer</title>
         <meta name="description" content="Information about schools to help parents to decide where to send their kids to."/>
@@ -19,16 +20,16 @@
                             <p id="school_id">Roll number: <?php echo $schoolData['identifier']; ?></p>
 
 <?php
-    $religion = (empty($schoolData['religionLabel']['value'])) ? '<a href="'.$schoolData['religion'].'">'.$schoolData['religion'].'</a>' : '<a href="'.$schoolData['religion'].'">'.$schoolData['religionLabel'].'</a>';
+    $religion = (empty($schoolData['religionLabel'])) ? '<a href="'.$schoolData['religion'].'">'.$schoolData['religion'].'</a>' : '<a href="'.$schoolData['religion'].'">'.$schoolData['religionLabel'].'</a>';
 
-    $gender = (empty($schoolData['genderLabel']['value'])) ? '<a href="'.$schoolData['gender'].'">'.$schoolData['gender'].'</a>' : '<a href="'.$schoolData['gender'].'">'.$schoolData['genderLabel'].'</a>';
+    $gender = (empty($schoolData['genderLabel'])) ? '<a href="'.$schoolData['gender'].'">'.$schoolData['gender'].'</a>' : '<a href="'.$schoolData['gender'].'">'.$schoolData['genderLabel'].'</a>';
 
 ?>
                             <p><?php echo $religion . ', gender ' . $gender; ?></p>
 
 <?php
     $a = array('address1', 'address2', 'address3');
-    $addresses = '';
+    $addresses = array();
     foreach ($a as $key) {
         if (isset($schoolData[$key])) {
             $addresses[] = $schoolData[$key];
@@ -37,10 +38,10 @@
 
     $addresses = implode(", ", $addresses) . ", ";
 
-    $addresses .= (empty($schoolData['regionLabel']['value'])) ? '<a href="'.$schoolData['region'].'">'.$schoolData['region'].'</a>' : '<a href="'.$schoolData['region'].'">'.$schoolData['regionLabel'].'</a>';
+    $address = $addresses . (empty($schoolData['regionLabel'])) ? '<a href="'.$schoolData['region'].'">'.$schoolData['region'].'</a>' : '<a href="'.$schoolData['region'].'">'.$schoolData['regionLabel'].'</a>';
 ?>
 
-                            <p id="school_address"><?php echo $addresses; ?></p>
+                            <p id="school_address"><?php echo $address; ?></p>
 
 <?php
     $students = '';
@@ -66,7 +67,6 @@
 
                             <?php echo $students; ?>
                         </div>
-
 
                         <div id="school_results">
                             <div id="school_legend"></div>

@@ -313,6 +313,12 @@ width:550px;
 margin-bottom:0.25em;
 }
 
+#school_number-of-students,
+#school_number-of-students dl {
+width:100%;
+float:left;
+}
+
 #school_number-of-students dl,
 #school_number-of-students dt,
 #school_number-of-students dd {
@@ -320,7 +326,8 @@ float:left;
 }
 #school_number-of-students dt {
 clear:left;
-width:40%;
+width:5%;
+font-weight:normal;
 }
 #school_number-of-students dd {
 margin-left:2em;
