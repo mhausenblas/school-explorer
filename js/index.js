@@ -895,6 +895,8 @@ var SE = { // School Explorer
                 SE.I.MAPCENTER_LONG = rangeControl.center['Qa'];
                 SE.showSchoolsNearLocation(SE.I.MAPCENTER_LAT, SE.I.MAPCENTER_LONG, parseInt(SE.I.SCHOOL_DISTANCE), SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
             });
+
+            $('#' + SE.C.MAP_ELEMENT_ID).append('<div id="' + SE.C.LEGEND_ELEMENT_ID+ '"><div id="legend_inrange">In range</div><div id="legend_outofrange">Out of range</div><div id="legend_inapplicable">Inapplicable</div>');
         }
 
         //FIXME: Perhaps needs to be refactored.

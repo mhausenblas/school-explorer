@@ -150,6 +150,7 @@ color: #606060;
 margin: 0;
 height: 500px;
 float:left;
+overflow:visible !important;
 }
 
 #school #school_map {
@@ -158,32 +159,34 @@ margin-bottom:2em;
 }
 
 #school_legend {
-display: none;
-text-align: left;
-margin: 0 2px 0 0;
-float: left;
-padding: 0;
-width: 70px;
+margin-top:1em;
+float:left;
+width:20%;
+clear:both;
+position:absolute;
+bottom:-80px;
+left:0;
+}
+#school #school_legend {
+display:none;
 }
 
-#school_legend div{
-cursor: pointer;
-text-align: center;
-font-size: 80%;
-padding: 2px; 
-color: #0f0f0f;
-box-shadow: 2px 2px 6px 2px rgba(10, 10, 10, 0.1);
+#school_legend div {
+height:20px;
+padding-left:0.5em;
+margin-bottom:2px;
+float:left;
+width:100%;
 }
 
-#school_legend h2{
-margin: .1em;
-font-size: 90%;
-background: #f0f0f0;
+#school_legend #legend_inrange {
+border-left:20px solid #647819;
 }
-
-.sublegend{
-margin: 0 0 10px 0;
-padding: .1em;
+#school_legend #legend_outofrange {
+border-left:20px solid #777;
+}
+#school_legend #legend_inapplicable {
+border-left:20px solid #111;
 }
 
 #school_details{
