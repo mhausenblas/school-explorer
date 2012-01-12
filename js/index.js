@@ -437,7 +437,12 @@ var SE = { // School Explorer
             schoolURIs = schoolURIs.join('+');
 
             $('#' + SE.C.DETAILS_ELEMENT_ID).append('<div id="'+SE.C.AGEGROUPS_ELEMENT_ID+'"/>');
-            SE.renderChart.ageGroups(schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
+
+            //FIXME: Needs to refactored probably
+            bodyId = $('body').attr('id');
+            if (bodyId != 'school') {
+                SE.renderChart.ageGroups(schoolURIs, $('#'+SE.C.AGEGROUPS_ELEMENT_ID));
+            }
         }
 
         $('#' + SE.C.DETAILS_ELEMENT_ID).append('<ul id="'+SE.C.SCHOOL_ENROLMENT_ELEMENT_ID+'"/>');
@@ -872,8 +877,15 @@ console.log(url);
             });
         }
 
-        // make map fit in the container and set in focus
-        $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
+        //FIXME: Perhaps needs to be refactored.
+        bodyId = $('body').attr('id');
+        if (bodyId == 'school') {
+            $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * 0.315);
+        }
+        else {
+            $('#' + SE.C.MAP_ELEMENT_ID).width($('#' + SE.C.CONTAINER_ELEMENT_ID).width() * SE.G.smapWidth);
+        }
+
         $.scrollTo('#' + SE.C.RESULT_ELEMENT_ID, {duration : 1000});
     },
 

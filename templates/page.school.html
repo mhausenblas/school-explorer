@@ -17,71 +17,73 @@
 
                     <div id="content_inner">
                         <div id="school_info">
-                            <p id="school_id">Roll number: <?php echo $schoolData['identifier']; ?></p>
+                            <div id="school_data">
+                                <p id="school_id">Roll number: <?php echo $schoolData['identifier']; ?></p>
 
-<?php
-    $religion = (empty($schoolData['religionLabel'])) ? '<a href="'.$schoolData['religion'].'">'.$schoolData['religion'].'</a>' : '<a href="'.$schoolData['religion'].'">'.$schoolData['religionLabel'].'</a>';
+    <?php
+        $religion = (empty($schoolData['religionLabel'])) ? '<a href="'.$schoolData['religion'].'">'.$schoolData['religion'].'</a>' : '<a href="'.$schoolData['religion'].'">'.$schoolData['religionLabel'].'</a>';
 
-    $gender = (empty($schoolData['genderLabel'])) ? '<a href="'.$schoolData['gender'].'">'.$schoolData['gender'].'</a>' : '<a href="'.$schoolData['gender'].'">'.$schoolData['genderLabel'].'</a>';
+        $gender = (empty($schoolData['genderLabel'])) ? '<a href="'.$schoolData['gender'].'">'.$schoolData['gender'].'</a>' : '<a href="'.$schoolData['gender'].'">'.$schoolData['genderLabel'].'</a>';
 
-?>
-                            <p><?php echo $religion . ', gender ' . $gender; ?></p>
+    ?>
+                                <p><?php echo $religion . ', gender ' . $gender; ?></p>
 
-<?php
-    $a = array('address1', 'address2', 'address3');
-    $addresses = array();
-    foreach ($a as $key) {
-        if (isset($schoolData[$key])) {
-            $addresses[] = $schoolData[$key];
+    <?php
+        $a = array('address1', 'address2', 'address3');
+        $addresses = array();
+        foreach ($a as $key) {
+            if (isset($schoolData[$key])) {
+                $addresses[] = $schoolData[$key];
+            }
         }
-    }
 
-    $addresses = implode(", ", $addresses) . ", ";
+        $addresses = implode(", ", $addresses) . ", ";
+        $region = (empty($schoolData['regionLabel'])) ? '<a href="'.$schoolData['region'].'">'.$schoolData['region'].'</a>' : '<a href="'.$schoolData['region'].'">'.$schoolData['regionLabel'].'</a>';
+    ?>
 
-    $address = $addresses . (empty($schoolData['regionLabel'])) ? '<a href="'.$schoolData['region'].'">'.$schoolData['region'].'</a>' : '<a href="'.$schoolData['region'].'">'.$schoolData['regionLabel'].'</a>';
-?>
+                                <p id="school_address"><?php echo $addresses . $region; ?></p>
 
-                            <p id="school_address"><?php echo $address; ?></p>
+    <?php
+        $students = '';
 
-<?php
-    $students = '';
-
-    if (isset($schoolData['numberOfStudentsBoys']) ||
-        isset($schoolData['numberOfStudentsGirls']) ||
-        isset($schoolData['numberOfStudents'])) {
-        $students .= '<div id="school_number-of-students">';
-        $students .= '<p>Number of Students:</p>';
-        $students .= "\n".'<dl>';
-        if (isset($schoolData['numberOfBoyStudents'])) {
-            $students .= '<dt>Boys</dt><dd>'.$schoolData['numberOfBoyStudents'].'</dd>';
+        if (isset($schoolData['numberOfStudentsBoys']) ||
+            isset($schoolData['numberOfStudentsGirls']) ||
+            isset($schoolData['numberOfStudents'])) {
+            $students .= '<div id="school_number-of-students">';
+            $students .= '<p>Number of Students:</p>';
+            $students .= "\n".'<dl>';
+            if (isset($schoolData['numberOfBoyStudents'])) {
+                $students .= '<dt>Boys</dt><dd>'.$schoolData['numberOfBoyStudents'].'</dd>';
+            }
+            if (isset($schoolData['numberOfGirlStudents'])) {
+                $students .= '<dt>Girls</dt><dd>'.$schoolData['numberOfGirlStudents'].'</dd>';
+            }
+            if (isset($schoolData['numberOfStudents'])) {
+                $students .= '<dt>Total</dt><dd>'.$schoolData['numberOfStudents'].'</dd>';
+            }
+            $students .= '</div>';
         }
-        if (isset($schoolData['numberOfGirlStudents'])) {
-            $students .= '<dt>Girls</dt><dd>'.$schoolData['numberOfGirlStudents'].'</dd>';
-        }
-        if (isset($schoolData['numberOfStudents'])) {
-            $students .= '<dt>Total</dt><dd>'.$schoolData['numberOfStudents'].'</dd>';
-        }
-        $students .= '</div>';
-    }
-?>
+    ?>
 
-                            <?php echo $students; ?>
+                                <?php echo $students; ?>
+                            </div>
+
+                            <div id="school_details"></div>
                         </div>
 
                         <div id="school_results">
                             <div id="school_legend"></div>
                             <div id="school_map"></div>
+                            <canvas id="dynam" width="40" height="60"></canvas>
 
-                            <div id="school_details"></div>
+                            <div id="school_context">
+                                <div id="school_sv_map"></div>
+                                <div id="school_nearby_radius"></div>
+                                <div id="school_nearby_slider"></div>
+                                <div id="school_nearby"></div>
+                            </div>
                         </div>
-                        <canvas id="dynam" width="40" height="60"></canvas>
 
-                        <div id="school_context">
-                            <div id="school_sv_map"></div>
-                            <div id="school_nearby_radius"></div>
-                            <div id="school_nearby_slider"></div>
-                            <div id="school_nearby"></div>
-                        </div>
 <?php
 //    print_r($school);
 //    print_r($schoolData);

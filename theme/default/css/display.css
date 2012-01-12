@@ -111,10 +111,15 @@ border-color:#AAAAAA;
 
 /* Michael's additions :*/
 
-#school_results{
+#school_results {
 margin-bottom:2em;
 float:left;
 width:100%;
+}
+
+#school #school_results {
+width:30%;
+margin-left:8%;
 }
 
 .example_school{
@@ -145,6 +150,11 @@ color: #606060;
 margin: 0;
 height: 500px;
 float:left;
+}
+
+#school #school_map {
+height:300px;
+margin-bottom:2em;
 }
 
 #school_legend {
@@ -180,6 +190,17 @@ padding: .1em;
 float: right;
 width:360px;
 margin-left:1em;
+}
+
+#school #school_details {
+clear:both;
+margin-left:0;
+float:left;
+}
+
+#school #school_data {
+float:left;
+width:100%;
 }
 
 .school_lst{
@@ -307,6 +328,10 @@ text-align: left;
 #school_info {
 float:left;
 width:550px;
+}
+
+#school #school_info {
+width:60%;
 }
 
 #school_number-of-students p {
