@@ -65,6 +65,8 @@ var SE = { // School Explorer
         MARKER_DYNAM_ID : "dynam", // the @id of the canvas we draw the dynamic markers in
         GM_MARKER_SIZE : { width: 16, height: 24 },
 
+        STATS_MAX_VALUE : 300,
+
         SCHOOL_YEARS : {
             "http://data-gov.ie/number-of-pre-zero-students" : { label : "0", year: "pre_school", value : 0 },
             "http://data-gov.ie/number-of-pre-first-students" : { label : "1", year: "pre_school", value : 0 },
@@ -486,7 +488,9 @@ var SE = { // School Explorer
                         }
                     });
 
-                    stats_max_value += 30;
+                    stats_max_value += 100;
+
+                    SE.C.STATS_MAX_VALUE = stats_max_value;
 
                     SE.G.chartAPI = new jGCharts.Api();
                     agegroups += '<img src="' + SE.G.chartAPI.make({
@@ -572,8 +576,8 @@ var SE = { // School Explorer
                     type : 'bvg', 
                     colors : ['009933'],
                     bar_width : 5,
-                    axis_range : '1,0,300',
-                    scaling : '0,300'
+                    axis_range : '1,0,' + SE.C.STATS_MAX_VALUE,
+                    scaling : '0,' + SE.C.STATS_MAX_VALUE
                 }) + '"/>';
 
                 enrolment += '<div class="chart_more">Total: ' +  total + ' (' + totalCalculated +') | Girls: '  +  totalGirls + ' | Boys: ' +  totalBoys + '</div>';
@@ -629,7 +633,7 @@ var SE = { // School Explorer
 
         $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
 
-        SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
+        var timeoutID = window.setTimeout(SE.renderChart.enrolment, 300, school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
     },
 
     determineSchoolRangeState : function (label, distance, religion, gender) {
