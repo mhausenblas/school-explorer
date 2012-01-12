@@ -16,8 +16,6 @@ class SchoolExplorer
 
     function __construct()
     {
-        define('STORE_URI', 'http://school-explorer/sparql');
-
         $this->config = array();
         $this->setPrefixes();
         $this->setObjectMapping();
