@@ -472,6 +472,7 @@ var SE = { // School Explorer
                 var agegroups = '';
                 var xdata = [];
                 var ydata = [];
+                var stats_max_value = 0;
 
                 if (data != null && data.data[0].length != 0) {
                     totalCalculated = 0;
@@ -479,7 +480,13 @@ var SE = { // School Explorer
                         xdata.push(agegroup.age_label.value);
                         ydata.push(parseInt(agegroup.population.value));
                         totalCalculated = totalCalculated + parseInt(agegroup.population.value);
+
+                        if (stats_max_value <= parseInt(agegroup.population.value)) {
+                            stats_max_value = parseInt(agegroup.population.value);
+                        }
                     });
+
+                    stats_max_value += 30;
 
                     SE.G.chartAPI = new jGCharts.Api();
                     agegroups += '<img src="' + SE.G.chartAPI.make({
@@ -493,8 +500,8 @@ var SE = { // School Explorer
                         type : 'bvg',
                         colors : ['003399'],
                         bar_width : 5,
-                        axis_range : '1,0,300',
-                        scaling : '0,300'
+                        axis_range : '1,0,' + stats_max_value,
+                        scaling : '0,' +  + stats_max_value
                     }) + '"/>';
                     agegroups += '<div class="chart_more">Total: ' + totalCalculated + '</div>';
                     agegroups += '<div class="chart_more">Year: 2006 | Source: <a href="http://cso.ie/" target="_blank">CSO</a>, Census</div>';
