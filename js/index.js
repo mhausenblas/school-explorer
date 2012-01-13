@@ -836,6 +836,14 @@ var SE = { // School Explorer
         SE.I.MAPCENTER_LAT = mapCenterLat;
         SE.I.MAPCENTER_LONG = mapCenterLng;
 
+        bodyId = $('body').attr('id');
+        if (bodyId == 'school') {
+            SE.G.selectedZoomFactor = 15;
+        }
+        else {
+            SE.G.selectedZoomFactor = 12;
+        }
+
         var mapOptions = { 
             zoom: SE.G.selectedZoomFactor,
             center: mapCenterCoords,
