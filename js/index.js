@@ -846,6 +846,32 @@ var SE = { // School Explorer
             SE.G.selectedZoomFactor = 12;
         }
 
+        var urlParams = SE.getURLParams();
+
+        if (urlParams.distance != undefined) {
+            SE.I.SCHOOL_DISTANCE = parseInt(urlParams.distance);
+
+            if (SE.I.SCHOOL_DISTANCE >= 10000) {
+                SE.G.selectedZoomFactor = 11;
+
+                if (SE.I.SCHOOL_DISTANCE >= 19000) {
+                    SE.G.selectedZoomFactor = 10;
+                }
+
+                if (SE.I.SCHOOL_DISTANCE >= 22000) {
+                    SE.G.selectedZoomFactor = 9;
+                }
+
+                if (SE.I.SCHOOL_DISTANCE >= 34000) {
+                    SE.G.selectedZoomFactor = 8;
+                }
+
+                if (SE.I.SCHOOL_DISTANCE >= 39000) {
+                    SE.G.selectedZoomFactor = 7;
+                }
+            }
+        }
+
         var mapOptions = { 
             zoom: SE.G.selectedZoomFactor,
             center: mapCenterCoords,
