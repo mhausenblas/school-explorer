@@ -12,7 +12,7 @@
 var SE = { // School Explorer
 
     C : { // constant SE-wide values
-        DEBUG : true,
+        DEBUG : false,
 
         SCHOOL_DATA_NS_URI : "http://data-gov.ie/school/", // the school data name space
 
@@ -428,6 +428,7 @@ var SE = { // School Explorer
 
         $.each(rows, function (i, s) {
             var age = s["phaseOfEducation"].value || '';
+
             var school_state = SE.determineSchoolRangeState(s["label"].value, s["distance"].value, age, s["religion"].value, s["gender"].value);
 
             if (school_state == 'inrange') {
@@ -748,7 +749,8 @@ var SE = { // School Explorer
                 }
 
                 //XXX: I do this here like this temporarily because I have to refactor stuff later.
-                SE.I.SCHOOL_DISTANCE = 0
+                SE.I.SCHOOL_DISTANCE = 0;
+                SE.I.SCHOOL_AGE = '';
                 SE.I.SCHOOL_RELIGION = school['religion'].value;
                 SE.I.SCHOOL_GENDER = school['gender'].value;
 
