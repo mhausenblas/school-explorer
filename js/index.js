@@ -106,7 +106,7 @@ var SE = { // School Explorer
         chartAPI : null, // the jgcharts object http://www.maxb.net/scripts/jgcharts
         contextRadius : 500, // in m ... used for querying the LGD POIs
         currentSchoolID : null, // selected school
-        useMapBounds : true, //wheather to use the map's bounding coordinates for the query or not
+        useMapBounds : true //wheather to use the map's bounding coordinates for the query or not
     },
 
     I : {  }, // Input values
@@ -849,6 +849,7 @@ var SE = { // School Explorer
         var urlParams = SE.getURLParams();
 
         if (urlParams.distance != undefined) {
+
             SE.I.SCHOOL_DISTANCE = parseInt(urlParams.distance);
 
             if (SE.I.SCHOOL_DISTANCE >= 10000) {
