@@ -410,7 +410,7 @@ var SE = { // School Explorer
 
         SE.position2Address(SE.I.SCHOOL_ADDRESS, function (lat, lng) { // get the location from address and show the 'nearby' schools
             SE.initMap(lat, lng);
-            var timeoutID = window.setTimeout(SE.showSchoolsNearLocation, 500, lat, lng, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER);
+            var timeoutID = window.setTimeout(function() { SE.showSchoolsNearLocation(lat, lng, SE.I.SCHOOL_DISTANCE, SE.I.SCHOOL_RELIGION, SE.I.SCHOOL_GENDER)}, 500);
         });
     },
 
@@ -637,7 +637,7 @@ var SE = { // School Explorer
 
         $('#' + SE.C.SCHOOL_ENROLMENT_ELEMENT_ID).append(school_info);
 
-        var timeoutID = window.setTimeout(SE.renderChart.enrolment, 300, school, $('#school_' + SE.getSchoolNotation(school['school'].value)));
+        var timeoutID = window.setTimeout(function() { SE.renderChart.enrolment(school, $('#school_' + SE.getSchoolNotation(school['school'].value))) }, 300);
     },
 
     determineSchoolRangeState : function (label, distance, age, religion, gender) {
