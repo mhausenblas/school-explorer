@@ -296,8 +296,16 @@ var SE = { // School Explorer
 
         l = getLocation(uri);
 
+        if (l.port == '80') {
+            var port = '';
+        }
+
+        if (l.pathname.substring(1) != '/') {
+            var pathname = '/' + l.pathname;
+        }
+
         //I rebuild for 1337 points (or maybe because I don't know better)
-        return l.protocol + '//' + host + l.port + l.pathname + l.search + l.hash;
+        return l.protocol + '//' + host + port + pathname + l.search + l.hash;
     },
 
     handleInteraction : function () {
